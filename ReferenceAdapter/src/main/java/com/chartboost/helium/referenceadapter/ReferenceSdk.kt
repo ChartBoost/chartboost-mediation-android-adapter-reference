@@ -17,12 +17,12 @@ class ReferenceSdk {
         }
 
         /**
-         * Simulate a partner SDK initialization that takes 500 ms to complete
-         * and randomly succeeds/fails to no effects. Do NOT copy.
+         * Simulate a partner SDK initialization that does nothing and takes 500 ms to complete.
+         * Do NOT copy.
          */
-        suspend fun initialize(completion: (Boolean) -> Unit) {
+        suspend fun initialize(completion: () -> Unit) {
             delay(500L)
-            completion(Random().nextBoolean())
+            completion()
         }
 
         /**

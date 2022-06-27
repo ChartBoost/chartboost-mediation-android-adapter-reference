@@ -164,16 +164,12 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
     }
 
     private fun cleanUp() {
-        webView?.let {
-            it.destroy()
-            webView = null
-        }
+        webView?.destroy()
+        webView = null
 
-        videoView?.let {
-            it.stopPlayback()
-            it.clearAnimation()
-            it.suspend()
-            videoView = null
-        }
+        videoView?.stopPlayback()
+        videoView?.clearAnimation()
+        videoView?.suspend()
+        videoView = null
     }
 }

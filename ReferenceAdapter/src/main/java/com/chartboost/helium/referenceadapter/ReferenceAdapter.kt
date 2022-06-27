@@ -7,6 +7,7 @@ import com.chartboost.helium.referenceadapter.ReferenceFullscreenAd.ReferenceFul
 import com.chartboost.helium.referenceadapter.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
 import com.chartboost.heliumsdk.domain.*
 import com.chartboost.heliumsdk.utils.LogController
+import kotlinx.coroutines.delay
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -19,16 +20,15 @@ import com.chartboost.heliumsdk.utils.LogController
  */
 class ReferenceAdapter : PartnerAdapter {
     companion object {
-        private const val ADAPTER_NAME = "[ReferenceAdapter]"
         private const val ADAPTER_VERSION = BuildConfig.VERSION_NAME
         private const val PARTNER_NAME = "ReferenceNetwork"
         private const val PARTNER_DISPLAY_NAME = "Reference Network"
     }
 
     /**
-     * A listener to notify the Helium SDK of the partner ad events.
+     * A map of Helium's listeners for the corresponding Helium placements.
      */
-    private var listener: PartnerAdListener? = null
+    private val listeners = mutableMapOf<String, PartnerAdListener>()
 
     /**
      * Override this value to return the version of the partner SDK.
@@ -66,16 +66,13 @@ class ReferenceAdapter : PartnerAdapter {
      * @param context The current Context.
      * @param partnerInitData The necessary initialization data provided by Helium.
      *
-     * @return Result.success(Unit) if the initialization was successful, Result.failure(Unit) otherwise.
+     * @return Result.success(Unit) if the initialization was successful, Result.failure(Exception) otherwise.
      */
     override suspend fun setUp(context: Context, partnerInitData: PartnerInitData): Result<Unit> {
-        var succeeded: Boolean? = null
-        ReferenceSdk.initialize { succeeded = it }
-
-        return if (succeeded == true)
-            Result.success(LogController.i("The reference SDK has been initialized."))
-        else
-            Result.failure(Exception("The reference SDK has failed to initialize."))
+        // For simplicity, the reference adapter always assumes successes.
+        return Result.success(ReferenceSdk.initialize {
+            LogController.i("The reference SDK has been initialized.")
+        })
     }
 
     /**
@@ -87,7 +84,7 @@ class ReferenceAdapter : PartnerAdapter {
      * @param adm The ad markup to be rendered by the partner SDK.
      * @param partnerAdListener The listener to notify the Helium SDK of the partner ad events.
      *
-     * @return Result.success(PartnerAd) if the request was successful, Result.failure(PartnerAd) otherwise.
+     * @return Result.success(PartnerAd) if the request was successful, Result.failure(Exception) otherwise.
      */
     override suspend fun load(
         context: Context,
@@ -97,7 +94,9 @@ class ReferenceAdapter : PartnerAdapter {
         partnerAdListener: PartnerAdListener
     ): Result<PartnerAd> {
         // Save the listener for later use.
-        listener = partnerAdListener
+        listeners[adData.placementId] = partnerAdListener
+
+        delay(1000L)
 
         // For simplicity, the reference adapter always assumes successes.
         return Result.success(
@@ -120,11 +119,13 @@ class ReferenceAdapter : PartnerAdapter {
      *
      * @param partnerAd The partner ad to be discarded.
      *
-     * @return Result.success(PartnerAd) if the ad was successfully discarded, Result.failure(PartnerAd) otherwise.
+     * @return Result.success(PartnerAd) if the ad was successfully discarded, Result.failure(Exception) otherwise.
      */
     override suspend fun invalidate(partnerAd: PartnerAd): Result<PartnerAd> {
         destroyBannerAd(partnerAd)
         destroyFullscreenAd(partnerAd)
+
+        listeners.remove(partnerAd.adData.placementId)
 
         // For simplicity, the reference adapter always assumes successes.
         return Result.success(partnerAd)
@@ -136,7 +137,7 @@ class ReferenceAdapter : PartnerAdapter {
      * @param context The current Context.
      * @param partnerAd The partner ad to be shown.
      *
-     * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(PartnerAd) otherwise.
+     * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(Exception) otherwise.
      */
     override suspend fun show(context: Context, partnerAd: PartnerAd): Result<PartnerAd> {
         // Only show fullscreen ad formats. Banners do not have a "show" mechanism.
@@ -170,7 +171,12 @@ class ReferenceAdapter : PartnerAdapter {
      *                   Helium SDK has not yet determined whether GDPR applies.
      */
     override fun setGdprApplies(gdprApplies: Boolean) {
-        // NO-OP for the purpose of this adapter
+        LogController.i(
+            if (gdprApplies != null)
+                "The reference adapter has been notified that GDPR " +
+                        (if (gdprApplies) "applies" else "does not apply.")
+            else "The Helium SDK has not yet determined whether GDPR applies."
+        )
     }
 
     /**
@@ -180,7 +186,10 @@ class ReferenceAdapter : PartnerAdapter {
      * @param gdprConsentStatus The consent status of the user (unknown, denied, or granted).
      */
     override fun setGdprConsentStatus(gdprConsentStatus: GdprConsentStatus) {
-        // NO-OP for the purpose of this adapter
+        LogController.i(
+            "The reference adapter has been notified that the user's GDPR consent status " +
+                    "is ${gdprConsentStatus.name}"
+        )
     }
 
     /**
@@ -190,7 +199,10 @@ class ReferenceAdapter : PartnerAdapter {
      * @param privacyString The privacy string, if available.
      */
     override fun setCcpaPrivacyString(privacyString: String?) {
-        // NO-OP for the purpose of this adapter
+        LogController.i(
+            "The reference adapter has been notified that the user's CCPA privacy string " +
+                    "is $privacyString"
+        )
     }
 
     /**
@@ -223,6 +235,7 @@ class ReferenceAdapter : PartnerAdapter {
             heliumToReferenceBannerSize(adData.size)
         )
         val partnerAd = PartnerAd(ad, null, mapOf("foo" to "bar"), adData)
+        val listener = listeners[adData.placementId]
 
         ad.load(
             adm,
@@ -275,7 +288,7 @@ class ReferenceAdapter : PartnerAdapter {
     private fun loadFullscreenAd(
         context: Context,
         adm: String?,
-        adData: AdData
+        adData: AdData,
     ): PartnerAd {
         val ad = ReferenceFullscreenAd(context, adData.placementId, getRandomFullscreenAdFormat())
         ad.load(adm)
@@ -288,26 +301,39 @@ class ReferenceAdapter : PartnerAdapter {
      *
      * @param partnerAd The partner ad to be shown.
      *
-     * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(PartnerAd) otherwise.
+     * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(Exception) otherwise.
      */
-    private fun showFullscreenAd(partnerAd: PartnerAd): Result<PartnerAd> {
+    private suspend fun showFullscreenAd(
+        partnerAd: PartnerAd
+    ): Result<PartnerAd> {
         partnerAd.ad?.let {
             if (it is ReferenceFullscreenAd) {
+                val listener = listeners[partnerAd.adData.placementId]
+
                 it.show(
                     onFullScreenAdImpression = {
                         listener?.onPartnerAdImpression(partnerAd)
+                            ?: run { LogController.i("Unable to notify partner ad impression") }
                     },
-                    onFullScreenAdFinished = {
-                        listener?.onPartnerAdFinished(partnerAd, null)
+                    onFullScreenAdDismissed = {
+                        listener?.onPartnerAdDismissed(partnerAd, null) ?: run {
+                            LogController.i("Unable to notify partner ad dismissal")
+                        }
                     },
                     onFullScreenAdRewarded = { amount, label ->
-                        listener?.onPartnerAdRewarded(partnerAd, Reward(amount, label))
+                        listener?.onPartnerAdRewarded(partnerAd, Reward(amount, label)) ?: run {
+                            LogController.i("Unable to notify partner ad reward")
+                        }
                     },
                     onFullScreenAdClicked = {
-                        listener?.onPartnerAdClicked(partnerAd)
+                        listener?.onPartnerAdClicked(partnerAd) ?: run {
+                            LogController.i("Unable to notify partner ad click")
+                        }
                     },
                     onFullScreenAdExpired = {
-                        listener?.onPartnerAdExpired(partnerAd)
+                        listener?.onPartnerAdExpired(partnerAd) ?: run {
+                            LogController.i("Unable to notify partner ad expiration")
+                        }
                     }
                 )
             }
