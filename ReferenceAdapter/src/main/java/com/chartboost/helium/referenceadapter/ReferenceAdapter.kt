@@ -1,6 +1,7 @@
 package com.chartboost.helium.referenceadapter;
 
 import android.content.Context
+import android.util.Log
 import android.util.Size
 import com.chartboost.helium.referenceadapter.ReferenceFullscreenAd.ReferenceFullscreenAdFormat
 import com.chartboost.helium.referenceadapter.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
@@ -213,7 +214,12 @@ class ReferenceAdapter : PartnerAdapter {
      *                        Helium SDK has not yet determined whether the user is subject to COPPA.
      */
     override fun setUserSubjectToCoppa(isSubjectToCoppa: Boolean) {
-        // NO-OP for the purpose of this adapter
+        LogController.i(
+            if (isSubjectToCoppa != null)
+                "The reference adapter has been notified that the user is " +
+                        (if (isSubjectToCoppa) "subject to COPPA" else "not subject to COPPA.")
+            else "The Helium SDK has not yet determined whether the user is subject to COPPA."
+        )
     }
 
     /**
