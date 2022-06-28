@@ -1,11 +1,14 @@
-package com.chartboost.helium.referenceadapter;
+package com.chartboost.helium.referenceadapter.adapter
 
 import android.content.Context
-import android.util.Log
 import android.util.Size
-import com.chartboost.helium.referenceadapter.ReferenceFullscreenAd.ReferenceFullscreenAdFormat
-import com.chartboost.helium.referenceadapter.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
-import com.chartboost.helium.referenceadapter.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
+import com.chartboost.helium.referenceadapter.BuildConfig
+import com.chartboost.helium.referenceadapter.sdk.ReferenceBanner
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
+import com.chartboost.helium.referenceadapter.sdk.ReferenceSdk
 import com.chartboost.heliumsdk.domain.*
 import com.chartboost.heliumsdk.utils.LogController
 import kotlinx.coroutines.delay
@@ -309,7 +312,7 @@ class ReferenceAdapter : PartnerAdapter {
      *
      * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(Exception) otherwise.
      */
-    private suspend fun showFullscreenAd(
+    private fun showFullscreenAd(
         partnerAd: PartnerAd
     ): Result<PartnerAd> {
         partnerAd.ad?.let {

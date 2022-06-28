@@ -1,19 +1,16 @@
-package com.chartboost.helium.referenceadapter
+package com.chartboost.helium.referenceadapter.sdk
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.util.Log
-import android.webkit.WebView
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.registerForActivityResult
 import androidx.appcompat.app.AppCompatActivity
 import com.chartboost.heliumsdk.utils.LogController
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -54,7 +51,7 @@ class ReferenceFullscreenAd(
         )
     }
 
-    suspend fun show(
+    fun show(
         onFullScreenAdImpression: () -> Unit,
         onFullScreenAdClicked: () -> Unit,
         onFullScreenAdRewarded: (Int, String) -> Unit,
@@ -66,22 +63,25 @@ class ReferenceFullscreenAd(
             putExtra(IS_REWARDED_KEY, adFormat == ReferenceFullscreenAdFormat.REWARDED)
         }
 
-        // Since we lose control of the ad obj and events when we launch the new Activity, for the sake of
-        // simplicity we'll fire all callbacks now.
-        onFullScreenAdImpression()
-        onFullScreenAdClicked()
-        onFullScreenAdRewarded(1, "coin")
-
-        // TODO: There might be weird lifecycle crashes here where `registerForActivityResult`
-        //  needs to be assigned to a variable. Check when ready.
-        withTimeoutOrNull(5000) {
-            // Launch a new Activity where the fullscreen ad will be displayed.
+        // Launch a new Activity where the fullscreen ad will be displayed.
+        CoroutineScope(Main).launch(CoroutineExceptionHandler { _, error ->
+            LogController.w("Error showing reference fullscreen ad: ${error.message}")
+            onFullScreenAdExpired()
+        }) {
+            // TODO: There might be weird lifecycle crashes where `registerForActivityResult` must be assigned to a variable. Check when ready.
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode == RESULT_CANCELED) {
+                    onFullScreenAdRewarded(1, "coin")
                     onFullScreenAdDismissed()
                 }
             }.launch(fullScreenActivity)
-        } ?: onFullScreenAdExpired()
+
+            // Since we lose control of the ad obj and events when we launch the new Activity, for the sake of
+            // simplicity we'll fire the following callbacks after a delay.
+            delay(1000L)
+            onFullScreenAdImpression()
+            onFullScreenAdClicked()
+        }
     }
 
     /**

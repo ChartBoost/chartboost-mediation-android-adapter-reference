@@ -1,4 +1,4 @@
-package com.chartboost.helium.referenceadapter
+package com.chartboost.helium.referenceadapter.sdk
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -12,10 +12,10 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.ui.AppBarConfiguration
-import com.chartboost.helium.referenceadapter.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
-import com.chartboost.helium.referenceadapter.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
+import com.chartboost.helium.referenceadapter.R
 import com.chartboost.helium.referenceadapter.databinding.ActivityReferenceFullscreenBinding
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
 import com.chartboost.heliumsdk.utils.LogController
 
 /**
@@ -24,7 +24,6 @@ import com.chartboost.heliumsdk.utils.LogController
  * A dummy SDK designed to support the reference adapter. Do NOT copy.
  */
 class ReferenceFullscreenActivity : AppCompatActivity() {
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityReferenceFullscreenBinding
 
     private var clickThroughUrl = "https://www.chartboost.com/helium/"

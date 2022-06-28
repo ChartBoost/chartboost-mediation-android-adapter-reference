@@ -1,4 +1,4 @@
-package com.chartboost.helium.referenceadapter
+package com.chartboost.helium.referenceadapter.sdk
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -20,7 +20,7 @@ import com.chartboost.heliumsdk.utils.LogController
 @SuppressLint("ViewConstructor")
 class ReferenceBanner(
     private val context: Context,
-    private val adUnitId: String, val size: Size
+    private val adUnitId: String, private val size: Size
 ) {
     enum class Size(val width: Int, val height: Int, val resUrl: String) {
         BANNER(

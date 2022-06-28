@@ -1,4 +1,4 @@
-package com.chartboost.helium.referenceadapter
+package com.chartboost.helium.referenceadapter.sdk
 
 import kotlinx.coroutines.delay
 import java.util.*
