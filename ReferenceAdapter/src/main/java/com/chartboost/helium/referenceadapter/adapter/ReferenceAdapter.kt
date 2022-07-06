@@ -55,7 +55,7 @@ class ReferenceAdapter : PartnerAdapter {
     /**
      * Override this value to return the name of the partner SDK.
      */
-    override val partnerName: String
+    override val partnerId: String
         get() = PARTNER_NAME
 
     /**
@@ -68,11 +68,14 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this method to initialize the partner SDK so that it's ready to request and display ads.
      *
      * @param context The current Context.
-     * @param partnerInitData The necessary initialization data provided by Helium.
+     * @param partnerConfiguration The necessary initialization data provided by Helium.
      *
      * @return Result.success(Unit) if the initialization was successful, Result.failure(Exception) otherwise.
      */
-    override suspend fun setUp(context: Context, partnerInitData: PartnerInitData): Result<Unit> {
+    override suspend fun setUp(
+        context: Context,
+        partnerConfiguration: PartnerConfiguration
+    ): Result<Unit> {
         // For simplicity, the reference adapter always assumes successes.
         return Result.success(ReferenceSdk.initialize {
             LogController.i("The reference SDK has been initialized.")
@@ -83,36 +86,32 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this method to make an ad request to the partner SDK for the given ad format.
      *
      * @param context The current Context.
-     * @param adData The necessary data associated with the current ad.
-     * @param partnerSettings The partner-specific settings for this ad request.
-     * @param adm The ad markup to be rendered by the partner SDK.
+     * @param request The relevant data associated with the current ad load call.
      * @param partnerAdListener The listener to notify the Helium SDK of the partner ad events.
      *
      * @return Result.success(PartnerAd) if the request was successful, Result.failure(Exception) otherwise.
      */
     override suspend fun load(
         context: Context,
-        adData: AdData,
-        partnerSettings: Map<String, String>,
-        adm: String?,
+        request: AdLoadRequest,
         partnerAdListener: PartnerAdListener
     ): Result<PartnerAd> {
         // Save the listener for later use.
-        listeners[adData.placementId] = partnerAdListener
+        listeners[request.heliumPlacement] = partnerAdListener
 
         delay(1000L)
 
         // For simplicity, the reference adapter always assumes successes.
         return Result.success(
-            when (adData.format) {
+            when (request.format) {
                 AdFormat.BANNER -> {
-                    loadBannerAd(context, adm, adData)
+                    loadBannerAd(context, request)
                 }
 
                 // For simplicity, this example uses a unified API for both interstitial and rewarded
                 // ads. Your implementations may differ.
                 AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
-                    loadFullscreenAd(context, adm, adData)
+                    loadFullscreenAd(context, request)
                 }
             }
         )
@@ -129,7 +128,7 @@ class ReferenceAdapter : PartnerAdapter {
         destroyBannerAd(partnerAd)
         destroyFullscreenAd(partnerAd)
 
-        listeners.remove(partnerAd.adData.placementId)
+        listeners.remove(partnerAd.request.partnerPlacement)
 
         // For simplicity, the reference adapter always assumes successes.
         return Result.success(partnerAd)
@@ -145,7 +144,7 @@ class ReferenceAdapter : PartnerAdapter {
      */
     override suspend fun show(context: Context, partnerAd: PartnerAd): Result<PartnerAd> {
         // Only show fullscreen ad formats. Banners do not have a "show" mechanism.
-        return if (partnerAd.adData.format == AdFormat.INTERSTITIAL || partnerAd.adData.format == AdFormat.REWARDED) {
+        return if (partnerAd.request.format == AdFormat.INTERSTITIAL || partnerAd.request.format == AdFormat.REWARDED) {
             showFullscreenAd(partnerAd)
         } else {
             Result.failure(Exception("Unsupported ad format"))
@@ -156,13 +155,13 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this method to compute and return a bid token for the bid request.
      *
      * @param context The current Context.
-     * @param adData The necessary data associated with the current ad.
+     * @param request The necessary data associated with the current bid request.
      *
      * @return A Map<String, String> of a biddable token keyed by an identifier.
      */
     override suspend fun fetchBidderInformation(
         context: Context,
-        adData: AdData
+        request: PreBidRequest
     ): Map<String, String> {
         return mapOf("bid_token" to ReferenceSdk.getBidToken())
     }
@@ -229,25 +228,23 @@ class ReferenceAdapter : PartnerAdapter {
      * Ask the reference SDK to load a banner ad.
      *
      * @param context The current Context.
-     * @param adm The ad markup to be rendered by the reference SDK.
-     * @param adData The necessary data associated with the current ad.
+     * @param request The relevant data associated with the current ad load call.
      *
      * @return The loaded [PartnerAd] ad.
      */
     private fun loadBannerAd(
         context: Context,
-        adm: String?,
-        adData: AdData
+        request: AdLoadRequest
     ): PartnerAd {
         val ad = ReferenceBanner(
-            context, adData.placementId,
-            heliumToReferenceBannerSize(adData.size)
+            context, request.partnerPlacement,
+            heliumToReferenceBannerSize(request.size)
         )
-        val partnerAd = PartnerAd(ad, null, mapOf("foo" to "bar"), adData)
-        val listener = listeners[adData.placementId]
+        val partnerAd = PartnerAd(ad, null, mapOf("foo" to "bar"), request)
+        val listener = listeners[request.partnerPlacement]
 
         ad.load(
-            adm,
+            request.adm,
             onAdImpression = { listener?.onPartnerAdImpression(partnerAd) },
             onAdClicked = { listener?.onPartnerAdClicked(partnerAd) }
         )
@@ -289,20 +286,19 @@ class ReferenceAdapter : PartnerAdapter {
      * This method will randomly decide the ad format (interstitial or rewarded).
      *
      * @param context The current Context.
-     * @param adm The ad markup.
-     * @param adData The necessary data associated with the current ad.
+     * @param request The relevant data associated with the current ad load call.
      *
      * @return The loaded [PartnerAd] ad.
      */
     private fun loadFullscreenAd(
         context: Context,
-        adm: String?,
-        adData: AdData,
+        request: AdLoadRequest,
     ): PartnerAd {
-        val ad = ReferenceFullscreenAd(context, adData.placementId, getRandomFullscreenAdFormat())
-        ad.load(adm)
+        val ad =
+            ReferenceFullscreenAd(context, request.partnerPlacement, getRandomFullscreenAdFormat())
+        ad.load(request.adm)
 
-        return PartnerAd(ad, null, mapOf("foo" to "bar"), adData)
+        return PartnerAd(ad, null, mapOf("foo" to "bar"), request)
     }
 
     /**
@@ -317,7 +313,7 @@ class ReferenceAdapter : PartnerAdapter {
     ): Result<PartnerAd> {
         partnerAd.ad?.let {
             if (it is ReferenceFullscreenAd) {
-                val listener = listeners[partnerAd.adData.placementId]
+                val listener = listeners[partnerAd.request.partnerPlacement]
 
                 it.show(
                     onFullScreenAdImpression = {
