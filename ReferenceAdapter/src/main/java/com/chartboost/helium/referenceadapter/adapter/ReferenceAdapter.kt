@@ -9,9 +9,15 @@ import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Referenc
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
 import com.chartboost.helium.referenceadapter.sdk.ReferenceSdk
+import com.chartboost.heliumsdk.ad.HeliumAdError
 import com.chartboost.heliumsdk.domain.*
 import com.chartboost.heliumsdk.utils.LogController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -77,9 +83,17 @@ class ReferenceAdapter : PartnerAdapter {
         partnerConfiguration: PartnerConfiguration
     ): Result<Unit> {
         // For simplicity, the reference adapter always assumes successes.
-        return Result.success(ReferenceSdk.initialize {
-            LogController.i("The reference SDK has been initialized.")
-        })
+        return suspendCoroutine { continuation ->
+            CoroutineScope(Main).launch {
+                ReferenceSdk.initialize {
+                    continuation.resume(
+                        Result.success(
+                            LogController.i("The reference SDK has been initialized.")
+                        )
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -147,7 +161,7 @@ class ReferenceAdapter : PartnerAdapter {
         return if (partnerAd.request.format == AdFormat.INTERSTITIAL || partnerAd.request.format == AdFormat.REWARDED) {
             showFullscreenAd(partnerAd)
         } else {
-            Result.failure(Exception("Unsupported ad format"))
+            Result.failure(HeliumAdException(HeliumErrorCode.AD_FORMAT_NOT_SUPPORTED))
         }
     }
 
