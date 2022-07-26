@@ -1,23 +1,16 @@
-package com.chartboost.helium.referenceadapter.adapter
+package com.chartboost.heliumsdk.referenceadapter.adapter
 
 import android.content.Context
 import android.util.Size
-import com.chartboost.helium.referenceadapter.BuildConfig
-import com.chartboost.helium.referenceadapter.sdk.ReferenceBanner
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
-import com.chartboost.helium.referenceadapter.sdk.ReferenceSdk
-import com.chartboost.heliumsdk.ad.HeliumAdError
 import com.chartboost.heliumsdk.domain.*
+import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceBanner
+import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd
+import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat
+import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
+import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
+import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceSdk
 import com.chartboost.heliumsdk.utils.LogController
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -30,7 +23,7 @@ import kotlin.coroutines.suspendCoroutine
  */
 class ReferenceAdapter : PartnerAdapter {
     companion object {
-        private const val ADAPTER_VERSION = BuildConfig.VERSION_NAME
+        private const val ADAPTER_VERSION = "BuildConfig.VERSION_NAME" // TODO: Uncomment
         private const val PARTNER_NAME = "ReferenceNetwork"
         private const val PARTNER_DISPLAY_NAME = "Reference Network"
     }
@@ -83,17 +76,8 @@ class ReferenceAdapter : PartnerAdapter {
         partnerConfiguration: PartnerConfiguration
     ): Result<Unit> {
         // For simplicity, the reference adapter always assumes successes.
-        return suspendCoroutine { continuation ->
-            CoroutineScope(Main).launch {
-                ReferenceSdk.initialize {
-                    continuation.resume(
-                        Result.success(
-                            LogController.i("The reference SDK has been initialized.")
-                        )
-                    )
-                }
-            }
-        }
+        ReferenceSdk.initialize()
+        return Result.success(LogController.i("The reference SDK has been initialized."))
     }
 
     /**
@@ -184,15 +168,13 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this method to notify your partner SDK of GDPR applicability as determined by
      * the Helium SDK.
      *
-     * @param gdprApplies True if GDPR applies, false if GDPR does not apply, and null if the
-     *                   Helium SDK has not yet determined whether GDPR applies.
+     * @param context The current [Context].
+     * @param gdprApplies True if GDPR applies, false otherwise.
      */
-    override fun setGdprApplies(gdprApplies: Boolean) {
+    override fun setGdprApplies(context: Context, gdprApplies: Boolean) {
         LogController.i(
-            if (gdprApplies != null)
-                "The reference adapter has been notified that GDPR " +
-                        (if (gdprApplies) "applies" else "does not apply.")
-            else "The Helium SDK has not yet determined whether GDPR applies."
+            "The reference adapter has been notified that GDPR " +
+                    (if (gdprApplies) "applies" else "does not apply.")
         )
     }
 
@@ -200,9 +182,10 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this method to notify your partner SDK of the GDPR consent status as determined by
      * the Helium SDK.
      *
-     * @param gdprConsentStatus The consent status of the user (unknown, denied, or granted).
+     * @param context The current [Context].
+     * @param gdprConsentStatus The user's current GDPR consent status.
      */
-    override fun setGdprConsentStatus(gdprConsentStatus: GdprConsentStatus) {
+    override fun setGdprConsentStatus(context: Context, gdprConsentStatus: GdprConsentStatus) {
         LogController.i(
             "The reference adapter has been notified that the user's GDPR consent status " +
                     "is ${gdprConsentStatus.name}"
@@ -213,12 +196,18 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this method to notify your partner SDK of the CCPA privacy String as supplied by
      * the Helium SDK.
      *
-     * @param privacyString The privacy string, if available.
+     * @param context The current [Context].
+     * @param hasGivenCcpaConsent True if the user has given CCPA consent, false otherwise.
+     * @param privacyString The CCPA privacy String.
      */
-    override fun setCcpaPrivacyString(privacyString: String?) {
+    override fun setCcpaConsent(
+        context: Context,
+        hasGivenCcpaConsent: Boolean,
+        privacyString: String?
+    ) {
         LogController.i(
             "The reference adapter has been notified that the user's CCPA privacy string " +
-                    "is $privacyString"
+                    "is $privacyString. And the user has ${if (hasGivenCcpaConsent) "given" else "not given"} CCPA consent."
         )
     }
 
@@ -226,15 +215,12 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this method to notify your partner SDK of the COPPA subjectivity as determined by
      * the Helium SDK.
      *
-     * @param isSubjectToCoppa True if the user is subject to COPPA, false if the user is not subject to COPPA, and null if the
-     *                        Helium SDK has not yet determined whether the user is subject to COPPA.
+     * @param context The current [Context].
+     * @param isSubjectToCoppa True if the user is subject to COPPA, false otherwise.
      */
-    override fun setUserSubjectToCoppa(isSubjectToCoppa: Boolean) {
+    override fun setUserSubjectToCoppa(context: Context, isSubjectToCoppa: Boolean) {
         LogController.i(
-            if (isSubjectToCoppa != null)
-                "The reference adapter has been notified that the user is " +
-                        (if (isSubjectToCoppa) "subject to COPPA" else "not subject to COPPA.")
-            else "The Helium SDK has not yet determined whether the user is subject to COPPA."
+            "The reference adapter has been notified that the user is ${if (isSubjectToCoppa) "subject to" else "not subject to"} COPPA."
         )
     }
 
@@ -254,7 +240,7 @@ class ReferenceAdapter : PartnerAdapter {
             context, request.partnerPlacement,
             heliumToReferenceBannerSize(request.size)
         )
-        val partnerAd = PartnerAd(ad, null, mapOf("foo" to "bar"), request)
+        val partnerAd = PartnerAd(ad, mapOf("foo" to "bar"), request)
         val listener = listeners[request.partnerPlacement]
 
         ad.load(
@@ -312,7 +298,7 @@ class ReferenceAdapter : PartnerAdapter {
             ReferenceFullscreenAd(context, request.partnerPlacement, getRandomFullscreenAdFormat())
         ad.load(request.adm)
 
-        return PartnerAd(ad, null, mapOf("foo" to "bar"), request)
+        return PartnerAd(ad, mapOf("foo" to "bar"), request)
     }
 
     /**

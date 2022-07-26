@@ -1,4 +1,4 @@
-package com.chartboost.helium.referenceadapter.sdk
+package com.chartboost.heliumsdk.referenceadapter.sdk
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -14,8 +14,8 @@ import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import com.chartboost.helium.referenceadapter.R
 import com.chartboost.helium.referenceadapter.databinding.ActivityReferenceFullscreenBinding
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
+import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
+import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
 import com.chartboost.heliumsdk.utils.LogController
 
 /**
