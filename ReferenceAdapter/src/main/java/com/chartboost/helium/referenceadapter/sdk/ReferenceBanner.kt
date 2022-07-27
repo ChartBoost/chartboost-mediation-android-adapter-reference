@@ -1,4 +1,4 @@
-package com.chartboost.heliumsdk.referenceadapter.sdk
+package com.chartboost.helium.referenceadapter.sdk
 
 import android.annotation.SuppressLint
 import android.content.Context

@@ -1,14 +1,14 @@
-package com.chartboost.heliumsdk.referenceadapter.adapter
+package com.chartboost.helium.referenceadapter.adapter
 
 import android.content.Context
 import android.util.Size
+import com.chartboost.helium.referenceadapter.sdk.ReferenceBanner
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
+import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
+import com.chartboost.helium.referenceadapter.sdk.ReferenceSdk
 import com.chartboost.heliumsdk.domain.*
-import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceBanner
-import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd
-import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat
-import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
-import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
-import com.chartboost.heliumsdk.referenceadapter.sdk.ReferenceSdk
 import com.chartboost.heliumsdk.utils.LogController
 import kotlinx.coroutines.delay
 
