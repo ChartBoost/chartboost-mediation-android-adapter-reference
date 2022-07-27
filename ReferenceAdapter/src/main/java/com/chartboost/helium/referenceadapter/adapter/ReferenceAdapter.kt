@@ -2,6 +2,7 @@ package com.chartboost.helium.referenceadapter.adapter
 
 import android.content.Context
 import android.util.Size
+import com.chartboost.helium.referenceadapter.BuildConfig
 import com.chartboost.helium.referenceadapter.sdk.ReferenceBanner
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat
@@ -49,7 +50,7 @@ class ReferenceAdapter : PartnerAdapter {
      * this is its initial release, then its version should be 2.1.0.0.0.
      */
     override val adapterVersion: String
-        get() = ADAPTER_VERSION
+        get() = BuildConfig.HELIUM_REFERENCE_ADAPTER_VERSION
 
     /**
      * Override this value to return the name of the partner SDK.
