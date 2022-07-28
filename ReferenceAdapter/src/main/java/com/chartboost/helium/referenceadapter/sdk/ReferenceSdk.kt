@@ -1,6 +1,5 @@
 package com.chartboost.helium.referenceadapter.sdk
 
-import kotlinx.coroutines.delay
 import java.util.*
 
 /**
@@ -17,12 +16,10 @@ class ReferenceSdk {
         }
 
         /**
-         * Simulate a partner SDK initialization that does nothing and takes 500 ms to complete.
+         * Simulate a partner SDK initialization that does nothing.
          * Do NOT copy.
          */
-        suspend fun initialize(completion: () -> Unit) {
-            delay(500L)
-            completion()
+        fun initialize() {
         }
 
         /**
