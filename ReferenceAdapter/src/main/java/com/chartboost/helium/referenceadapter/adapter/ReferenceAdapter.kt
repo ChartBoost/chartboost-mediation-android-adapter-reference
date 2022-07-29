@@ -11,7 +11,12 @@ import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Referenc
 import com.chartboost.helium.referenceadapter.sdk.ReferenceSdk
 import com.chartboost.heliumsdk.domain.*
 import com.chartboost.heliumsdk.utils.LogController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -23,12 +28,6 @@ import kotlinx.coroutines.delay
  * but do NOT call this adapter directly.
  */
 class ReferenceAdapter : PartnerAdapter {
-    companion object {
-        private const val ADAPTER_VERSION = "BuildConfig.VERSION_NAME" // TODO: Uncomment
-        private const val PARTNER_NAME = "ReferenceNetwork"
-        private const val PARTNER_DISPLAY_NAME = "Reference Network"
-    }
-
     /**
      * A map of Helium's listeners for the corresponding Helium placements.
      */
@@ -56,13 +55,13 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this value to return the name of the partner SDK.
      */
     override val partnerId: String
-        get() = PARTNER_NAME
+        get() = "reference"
 
     /**
      * Override this value to return the display name of the partner SDK.
      */
     override val partnerDisplayName: String
-        get() = PARTNER_DISPLAY_NAME
+        get() = "Reference"
 
     /**
      * Override this method to initialize the partner SDK so that it's ready to request and display ads.
@@ -77,8 +76,17 @@ class ReferenceAdapter : PartnerAdapter {
         partnerConfiguration: PartnerConfiguration
     ): Result<Unit> {
         // For simplicity, the reference adapter always assumes successes.
-        ReferenceSdk.initialize()
-        return Result.success(LogController.i("The reference SDK has been initialized."))
+        return suspendCoroutine { continuation ->
+            CoroutineScope(Main).launch {
+                ReferenceSdk.initialize {
+                    continuation.resume(
+                        Result.success(
+                            LogController.i("The reference SDK has been initialized.")
+                        )
+                    )
+                }
+            }
+        }
     }
 
     /**
