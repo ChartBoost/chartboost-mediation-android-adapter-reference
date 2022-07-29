@@ -20,9 +20,8 @@ class ReferenceSdk {
          * Simulate a partner SDK initialization that does nothing and completes after 500 ms.
          * Do NOT copy.
          */
-        suspend fun initialize(callback: () -> Unit) {
+        suspend fun initialize() {
             delay(500L)
-            callback()
         }
 
         /**

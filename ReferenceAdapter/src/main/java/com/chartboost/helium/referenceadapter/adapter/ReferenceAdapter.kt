@@ -76,17 +76,8 @@ class ReferenceAdapter : PartnerAdapter {
         partnerConfiguration: PartnerConfiguration
     ): Result<Unit> {
         // For simplicity, the reference adapter always assumes successes.
-        return suspendCoroutine { continuation ->
-            CoroutineScope(Main).launch {
-                ReferenceSdk.initialize {
-                    continuation.resume(
-                        Result.success(
-                            LogController.i("The reference SDK has been initialized.")
-                        )
-                    )
-                }
-            }
-        }
+        ReferenceSdk.initialize()
+        return Result.success(LogController.i("The reference SDK has been initialized."))
     }
 
     /**
