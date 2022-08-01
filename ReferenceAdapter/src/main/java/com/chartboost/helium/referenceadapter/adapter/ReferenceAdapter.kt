@@ -23,12 +23,6 @@ import kotlinx.coroutines.delay
  * but do NOT call this adapter directly.
  */
 class ReferenceAdapter : PartnerAdapter {
-    companion object {
-        private const val ADAPTER_VERSION = "BuildConfig.VERSION_NAME" // TODO: Uncomment
-        private const val PARTNER_NAME = "ReferenceNetwork"
-        private const val PARTNER_DISPLAY_NAME = "Reference Network"
-    }
-
     /**
      * A map of Helium's listeners for the corresponding Helium placements.
      */
@@ -56,13 +50,13 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this value to return the name of the partner SDK.
      */
     override val partnerId: String
-        get() = PARTNER_NAME
+        get() = "reference"
 
     /**
      * Override this value to return the display name of the partner SDK.
      */
     override val partnerDisplayName: String
-        get() = PARTNER_DISPLAY_NAME
+        get() = "Reference"
 
     /**
      * Override this method to initialize the partner SDK so that it's ready to request and display ads.
