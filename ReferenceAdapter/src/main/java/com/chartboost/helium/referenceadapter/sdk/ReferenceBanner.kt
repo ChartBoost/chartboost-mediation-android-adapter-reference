@@ -10,7 +10,8 @@ import android.view.View.INVISIBLE
 import android.view.ViewConfiguration
 import android.webkit.WebView
 import android.widget.LinearLayout
-import com.chartboost.heliumsdk.utils.LogController
+import com.chartboost.heliumsdk.utils.PartnerLogController
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.CUSTOM
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -49,7 +50,8 @@ class ReferenceBanner(
         onAdImpression: () -> Unit,
         onAdClicked: () -> Unit,
     ) {
-        LogController.i(
+        PartnerLogController.log(
+            CUSTOM,
             "Loading reference banner for ad unit ID $adUnitId with ad markup $adm" +
                     "and size ${size.width}x${size.height}"
         )
