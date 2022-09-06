@@ -16,7 +16,8 @@ import com.chartboost.helium.referenceadapter.R
 import com.chartboost.helium.referenceadapter.databinding.ActivityReferenceFullscreenBinding
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
-import com.chartboost.heliumsdk.utils.LogController
+import com.chartboost.heliumsdk.utils.PartnerLogController
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterFailureEvents.SHOW_FAILED
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -52,12 +53,12 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         if (isAdRewarded) {
             showRewardedAd(adUrl,
                 onShowFailure = {
-                    LogController.e("Failed to show rewarded ad")
+                    PartnerLogController.log(SHOW_FAILED)
                 })
         } else {
             showInterstitialAd(adUrl,
                 onShowFailure = {
-                    LogController.e("Failed to show interstitial ad")
+                    PartnerLogController.log(SHOW_FAILED)
                 }
             )
         }

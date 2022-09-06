@@ -5,7 +5,10 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.chartboost.heliumsdk.utils.LogController
+import com.chartboost.heliumsdk.utils.PartnerLogController
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterFailureEvents.*
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterSuccessEvents.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
@@ -45,7 +48,8 @@ class ReferenceFullscreenAd(
      * See [ReferenceFullscreenActivity] for more information.
      */
     fun load(adm: String?) {
-        LogController.i(
+        PartnerLogController.log(
+            CUSTOM,
             "Loading reference $adFormat ad for ad unit ID $adUnitId " +
                     "with ad markup $adm"
         )
@@ -56,7 +60,7 @@ class ReferenceFullscreenAd(
         onFullScreenAdClicked: () -> Unit,
         onFullScreenAdRewarded: (Int, String) -> Unit,
         onFullScreenAdDismissed: () -> Unit,
-        onFullScreenAdExpired: () -> Unit
+        onFullScreenAdExpired: (error: String) -> Unit
     ) {
         val fullScreenActivity = Intent(context, ReferenceFullscreenActivity::class.java).apply {
             putExtra(FULLSCREEN_AD_URL, adFormat.resUrl)
@@ -65,8 +69,7 @@ class ReferenceFullscreenAd(
 
         // Launch a new Activity where the fullscreen ad will be displayed.
         CoroutineScope(Main).launch(CoroutineExceptionHandler { _, error ->
-            LogController.w("Error showing reference fullscreen ad: ${error.message}")
-            onFullScreenAdExpired()
+            onFullScreenAdExpired(error.message ?: "Unknown error")
         }) {
             // TODO: There might be weird lifecycle crashes where `registerForActivityResult` must be assigned to a variable. Check when ready.
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -91,7 +94,8 @@ class ReferenceFullscreenAd(
      * See [ReferenceFullscreenActivity] for more information.
      */
     fun destroy() {
-        LogController.i(
+        PartnerLogController.log(
+            CUSTOM,
             "Destroying reference $adFormat ad for ad unit ID $adUnitId"
         )
     }
