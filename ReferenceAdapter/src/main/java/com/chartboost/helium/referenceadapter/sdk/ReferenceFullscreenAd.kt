@@ -7,8 +7,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.chartboost.heliumsdk.utils.PartnerLogController
 import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterFailureEvents.*
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterSuccessEvents.*
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
