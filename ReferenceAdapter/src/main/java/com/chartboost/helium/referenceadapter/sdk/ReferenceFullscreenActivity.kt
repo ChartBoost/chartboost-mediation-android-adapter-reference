@@ -17,7 +17,7 @@ import com.chartboost.helium.referenceadapter.databinding.ActivityReferenceFulls
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
 import com.chartboost.heliumsdk.utils.PartnerLogController
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterFailureEvents.SHOW_FAILED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.SHOW_FAILED
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.

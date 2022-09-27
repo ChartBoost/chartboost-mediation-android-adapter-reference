@@ -12,8 +12,6 @@ import com.chartboost.helium.referenceadapter.sdk.ReferenceSdk
 import com.chartboost.heliumsdk.domain.*
 import com.chartboost.heliumsdk.utils.PartnerLogController
 import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterFailureEvents.SHOW_FAILED
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterSuccessEvents.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -188,11 +186,7 @@ class ReferenceAdapter : PartnerAdapter {
      * @param gdprApplies True if GDPR applies, false otherwise.
      */
     override fun setGdprApplies(context: Context, gdprApplies: Boolean) {
-        PartnerLogController.log(
-            CUSTOM,
-            "The reference adapter has been notified that GDPR " +
-                    (if (gdprApplies) "applies" else "does not apply.")
-        )
+        PartnerLogController.log(if (gdprApplies) GDPR_APPLICABLE else GDPR_NOT_APPLICABLE)
     }
 
     /**
@@ -204,9 +198,11 @@ class ReferenceAdapter : PartnerAdapter {
      */
     override fun setGdprConsentStatus(context: Context, gdprConsentStatus: GdprConsentStatus) {
         PartnerLogController.log(
-            CUSTOM,
-            "The reference adapter has been notified that the user's GDPR consent status " +
-                    "is ${gdprConsentStatus.name}"
+            when (gdprConsentStatus) {
+                GdprConsentStatus.GDPR_CONSENT_UNKNOWN -> GDPR_CONSENT_UNKNOWN
+                GdprConsentStatus.GDPR_CONSENT_GRANTED -> GDPR_CONSENT_GRANTED
+                GdprConsentStatus.GDPR_CONSENT_DENIED -> GDPR_CONSENT_DENIED
+            }
         )
     }
 
@@ -215,18 +211,17 @@ class ReferenceAdapter : PartnerAdapter {
      * the Helium SDK.
      *
      * @param context The current [Context].
-     * @param hasGivenCcpaConsent True if the user has given CCPA consent, false otherwise.
+     * @param hasGrantedCcpaConsent True if the user has granted CCPA consent, false otherwise.
      * @param privacyString The CCPA privacy String.
      */
     override fun setCcpaConsent(
         context: Context,
-        hasGivenCcpaConsent: Boolean,
+        hasGrantedCcpaConsent: Boolean,
         privacyString: String?
     ) {
         PartnerLogController.log(
-            CUSTOM,
-            "The reference adapter has been notified that the user's CCPA privacy string " +
-                    "is $privacyString. And the user has ${if (hasGivenCcpaConsent) "given" else "not given"} CCPA consent."
+            if (hasGrantedCcpaConsent) CCPA_CONSENT_GRANTED
+            else CCPA_CONSENT_DENIED
         )
     }
 
@@ -239,8 +234,8 @@ class ReferenceAdapter : PartnerAdapter {
      */
     override fun setUserSubjectToCoppa(context: Context, isSubjectToCoppa: Boolean) {
         PartnerLogController.log(
-            CUSTOM,
-            "The reference adapter has been notified that the user is ${if (isSubjectToCoppa) "subject to" else "not subject to"} COPPA."
+            if (isSubjectToCoppa) COPPA_SUBJECT
+            else COPPA_NOT_SUBJECT
         )
     }
 
