@@ -33,8 +33,6 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         private var onAdClicked: () -> Unit = {}
         private var onAdDismissed: () -> Unit = {}
 
-        private var videoPlaybackHandler: Handler? = null
-
         fun subscribe(
             shown: () -> Unit,
             rewarded: (Int, String) -> Unit,
@@ -62,6 +60,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
     private var isAdRewarded = false
     private var videoView: VideoView? = null
     private var webView: WebView? = null
+    private var videoPlaybackHandler: Handler? = null
     private var adDismissTracked = false
 
     @SuppressLint("ClickableViewAccessibility")
