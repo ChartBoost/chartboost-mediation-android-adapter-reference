@@ -3,7 +3,6 @@ package com.chartboost.helium.referenceadapter.sdk
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.chartboost.heliumsdk.utils.PartnerLogController
 import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
@@ -69,19 +68,21 @@ class ReferenceFullscreenAd(
         CoroutineScope(Main).launch(CoroutineExceptionHandler { _, error ->
             onFullScreenAdExpired(error.message ?: "Unknown error")
         }) {
-            // TODO: There might be weird lifecycle crashes where `registerForActivityResult` must be assigned to a variable. Check when ready.
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (result.resultCode == RESULT_CANCELED) {
-                    onFullScreenAdRewarded(1, "coin")
-                    onFullScreenAdDismissed()
-                }
-            }.launch(fullScreenActivity)
-
             // Since we lose control of the ad obj and events when we launch the new Activity, for the sake of
             // simplicity we'll fire the following callbacks after a delay.
             delay(1000L)
-            onFullScreenAdImpression()
-            onFullScreenAdClicked()
+
+            ReferenceFullscreenActivity.subscribe(shown = {
+                onFullScreenAdImpression()
+            }, clicked = {
+                onFullScreenAdClicked()
+            }, rewarded = { amount, currency ->
+                onFullScreenAdRewarded(amount, currency)
+            }, dismissed = {
+                onFullScreenAdDismissed()
+            })
+
+            context.startActivity(fullScreenActivity)
         }
     }
 
