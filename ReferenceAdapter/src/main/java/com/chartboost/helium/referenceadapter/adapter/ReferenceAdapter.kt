@@ -5,11 +5,11 @@ import android.util.Size
 import com.chartboost.helium.referenceadapter.BuildConfig
 import com.chartboost.helium.referenceadapter.sdk.ReferenceBanner
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
 import com.chartboost.helium.referenceadapter.sdk.ReferenceSdk
 import com.chartboost.heliumsdk.domain.*
+import com.chartboost.heliumsdk.utils.LogController
 import com.chartboost.heliumsdk.utils.PartnerLogController
 import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
 import kotlinx.coroutines.delay
@@ -251,23 +251,27 @@ class ReferenceAdapter : PartnerAdapter {
         context: Context,
         request: PartnerAdLoadRequest
     ): PartnerAd {
+        val listener = listeners[request.partnerPlacement]
         val ad = ReferenceBanner(
             context, request.partnerPlacement,
             heliumToReferenceBannerSize(request.size)
         )
-        val partnerAd = PartnerAd(ad, mapOf("foo" to "bar"), request)
-        val listener = listeners[request.partnerPlacement]
 
         ad.load(
             request.adm,
             onAdImpression = {
                 PartnerLogController.log(LOAD_SUCCEEDED)
-                listener?.onPartnerAdImpression(partnerAd)
+                listener?.onPartnerAdImpression(createPartnerAd(ad, request))
+                    ?: LogController.d("Unable to notify partner ad impression. Listener is null.")
             },
-            onAdClicked = { listener?.onPartnerAdClicked(partnerAd) }
+            onAdClicked = {
+                PartnerLogController.log(DID_CLICK)
+                listener?.onPartnerAdClicked(createPartnerAd(ad, request))
+                    ?: LogController.d("Unable to notify partner ad click. Listener is null.")
+            }
         )
 
-        return partnerAd
+        return createPartnerAd(ad, request)
     }
 
     /**
@@ -315,11 +319,17 @@ class ReferenceAdapter : PartnerAdapter {
         request: PartnerAdLoadRequest,
     ): PartnerAd {
         val ad =
-            ReferenceFullscreenAd(context, request.partnerPlacement, getRandomFullscreenAdFormat())
+            ReferenceFullscreenAd(
+                context, request.partnerPlacement, if (request.format == AdFormat.REWARDED) {
+                    REWARDED
+                } else {
+                    INTERSTITIAL
+                }
+            )
         ad.load(request.adm)
 
         PartnerLogController.log(LOAD_SUCCEEDED)
-        return PartnerAd(ad, mapOf("foo" to "bar"), request)
+        return createPartnerAd(ad, request)
     }
 
     /**
@@ -332,25 +342,29 @@ class ReferenceAdapter : PartnerAdapter {
     private suspend fun showFullscreenAd(
         partnerAd: PartnerAd
     ): Result<PartnerAd> {
-        partnerAd.ad?.let {
-            if (it is ReferenceFullscreenAd) {
+        partnerAd.ad?.let { ad ->
+            if (ad is ReferenceFullscreenAd) {
                 val listener = listeners[partnerAd.request.partnerPlacement]
 
                 return suspendCancellableCoroutine { continuation ->
-                    it.show(
+                    ad.show(
                         onFullScreenAdImpression = {
-                            PartnerLogController.log(SHOW_SUCCEEDED)
-                            listener?.onPartnerAdImpression(partnerAd)
-                                ?: PartnerLogController.log(
-                                    CUSTOM,
-                                    "Unable to notify partner ad impression. Listener is null."
-                                )
+                            listener?.let {
+                                PartnerLogController.log(DID_TRACK_IMPRESSION)
+                                it.onPartnerAdImpression(partnerAd)
+                            } ?: PartnerLogController.log(
+                                CUSTOM,
+                                "Unable to notify partner ad impression. Listener is null."
+                            )
 
                             // For simplicity, the reference adapter always assumes successes.
                             continuation.resume(Result.success(partnerAd))
                         },
                         onFullScreenAdDismissed = {
-                            listener?.onPartnerAdDismissed(partnerAd, null) ?: run {
+                            listener?.let {
+                                PartnerLogController.log(DID_DISMISS)
+                                it.onPartnerAdDismissed(partnerAd, null)
+                            } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,
                                     "Unable to notify partner ad dismissal. Listener is null."
@@ -358,7 +372,10 @@ class ReferenceAdapter : PartnerAdapter {
                             }
                         },
                         onFullScreenAdRewarded = { amount, label ->
-                            listener?.onPartnerAdRewarded(partnerAd, Reward(amount, label)) ?: run {
+                            listener?.let {
+                                PartnerLogController.log(DID_REWARD)
+                                it.onPartnerAdRewarded(partnerAd, Reward(amount, label))
+                            } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,
                                     "Unable to notify partner ad reward. Listener is null."
@@ -366,7 +383,10 @@ class ReferenceAdapter : PartnerAdapter {
                             }
                         },
                         onFullScreenAdClicked = {
-                            listener?.onPartnerAdClicked(partnerAd) ?: run {
+                            listener?.let {
+                                PartnerLogController.log(DID_CLICK)
+                                it.onPartnerAdClicked(partnerAd)
+                            } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,
                                     "Unable to notify partner ad click. Listener is null."
@@ -374,8 +394,10 @@ class ReferenceAdapter : PartnerAdapter {
                             }
                         },
                         onFullScreenAdExpired = { error ->
-                            PartnerLogController.log(SHOW_FAILED, error)
-                            listener?.onPartnerAdExpired(partnerAd) ?: run {
+                            listener?.let {
+                                PartnerLogController.log(DID_EXPIRE)
+                                it.onPartnerAdExpired(partnerAd)
+                            } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,
                                     "Unable to notify partner ad expiration. Listener is null."
@@ -408,11 +430,14 @@ class ReferenceAdapter : PartnerAdapter {
     }
 
     /**
-     * Return a random fullscreen ad format.
+     * Create a [PartnerAd] from the given data.
      *
-     * @return A random ad format (interstitial or rewarded).
+     * @param ad The reference SDK's ad object.
+     * @param request The relevant data associated with the current ad load call.
+     *
+     * @return The [PartnerAd] instance for the current ad call.
      */
-    private fun getRandomFullscreenAdFormat(): ReferenceFullscreenAdFormat {
-        return if (Math.random() < 0.5) INTERSTITIAL else REWARDED
+    private fun createPartnerAd(ad: Any, request: PartnerAdLoadRequest): PartnerAd {
+        return PartnerAd(ad, mapOf("foo" to "bar"), request)
     }
 }

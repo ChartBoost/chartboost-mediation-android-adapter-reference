@@ -20,9 +20,9 @@ import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.
  */
 @SuppressLint("ViewConstructor")
 class ReferenceBanner(
-    private val context: Context,
+    context: Context,
     private val adUnitId: String, private val size: Size
-) {
+) : WebView(context) {
     enum class Size(val width: Int, val height: Int, val resUrl: String) {
         BANNER(
             320,
@@ -41,7 +41,6 @@ class ReferenceBanner(
         );
     }
 
-    private var bannerAd: WebView? = null
     private var clickThroughUrl = "https://www.chartboost.com/helium/"
 
     @SuppressLint("ClickableViewAccessibility")
@@ -56,8 +55,10 @@ class ReferenceBanner(
                     "and size ${size.width}x${size.height}"
         )
 
-        bannerAd = destroy().run { createBannerAd() }
-        bannerAd?.setOnTouchListener(object : View.OnTouchListener {
+        layoutParams = LinearLayout.LayoutParams(size.width, size.height)
+        loadUrl(size.resUrl)
+
+        setOnTouchListener(object : OnTouchListener {
             var startTime: Long = 0
 
             override fun onTouch(v: View?, event: MotionEvent): Boolean {
@@ -75,19 +76,9 @@ class ReferenceBanner(
 
                 return true
             }
-        }) ?: run {
-            throw IllegalStateException("Unable to load banner ad. It is null.")
-        }
+        })
 
         onAdImpression()
-    }
-
-    fun destroy() {
-        bannerAd?.run {
-            this.visibility = INVISIBLE
-            this.destroy()
-            bannerAd = null
-        }
     }
 
     private fun clickthrough() {
@@ -95,13 +86,5 @@ class ReferenceBanner(
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(browserIntent)
-    }
-
-    private fun createBannerAd(): WebView {
-        return WebView(context).run {
-            this.layoutParams = LinearLayout.LayoutParams(size.width, size.height)
-            this.loadUrl(size.resUrl)
-            this
-        }
     }
 }

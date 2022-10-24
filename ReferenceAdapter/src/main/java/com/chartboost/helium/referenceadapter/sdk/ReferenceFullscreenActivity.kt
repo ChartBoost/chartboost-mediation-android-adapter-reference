@@ -2,8 +2,11 @@ package com.chartboost.helium.referenceadapter.sdk
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
@@ -25,12 +28,42 @@ import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.
  * A dummy SDK designed to support the reference adapter. Do NOT copy.
  */
 class ReferenceFullscreenActivity : AppCompatActivity() {
+    companion object {
+        private var onAdShown: () -> Unit = {}
+        private var onAdRewarded: (Int, String) -> Unit = { _, _ -> }
+        private var onAdClicked: () -> Unit = {}
+        private var onAdDismissed: () -> Unit = {}
+
+        fun subscribe(
+            shown: () -> Unit,
+            rewarded: (Int, String) -> Unit,
+            clicked: () -> Unit,
+            dismissed: () -> Unit
+        ) {
+            onAdShown = {
+                shown()
+            }
+            onAdRewarded = { amount, currency ->
+                rewarded(amount, currency)
+            }
+            onAdClicked = {
+                clicked()
+            }
+            onAdDismissed = {
+                dismissed()
+            }
+        }
+    }
+
     private lateinit var binding: ActivityReferenceFullscreenBinding
 
     private var clickThroughUrl = "https://www.chartboost.com/helium/"
     private var isAdRewarded = false
     private var videoView: VideoView? = null
     private var webView: WebView? = null
+    private var videoPlaybackHandler: Handler? = Handler(Looper.getMainLooper())
+    private var adDismissTracked = false
+    private var adShowTracked = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,17 +72,12 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         binding = ActivityReferenceFullscreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         isAdRewarded = intent.getBooleanExtra(IS_REWARDED_KEY, false)
         val adUrl = intent.getStringExtra(FULLSCREEN_AD_URL)
             ?: throw IllegalArgumentException("No creative URL provided")
 
-        /**
-         * Since we are only locally detecting show failures (no signals back to the adapter),
-         * logging is sufficient.
-         *
-         * We also don't need to relay any other ad events since [ReferenceFullscreenAd.show]
-         * has already fired all callbacks.
-         */
         if (isAdRewarded) {
             showRewardedAd(adUrl,
                 onShowFailure = {
@@ -116,6 +144,8 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                     return true
                 }
             })
+
+            onAdShown()
         }
     }
 
@@ -146,11 +176,28 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                         if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
                             // Deliberately terminate ad playback upon clickthrough.
                             // As such, when the user comes back from the landing page, they will also be exiting the ad experience.
-                            cleanUp()
                             clickthrough()
+                            cleanUp()
                         }
                     }
                     return true
+                }
+            })
+
+            videoPlaybackHandler?.post(object : Runnable {
+                override fun run() {
+                    if (isPlaying && !adShowTracked) {
+                        onAdShown()
+                        adShowTracked = true
+                    }
+
+                    if (!isPlaying && currentPosition > 0 && duration != -1) {
+                        videoPlaybackHandler?.removeCallbacksAndMessages(null)
+                        videoPlaybackHandler = null
+                        onAdRewarded(1, "coin")
+                    }
+
+                    videoPlaybackHandler?.postDelayed(this, 250)
                 }
             })
         }
@@ -161,6 +208,8 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         startActivity(browserIntent)
+
+        onAdClicked()
     }
 
     private fun cleanUp() {
@@ -171,5 +220,10 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         videoView?.clearAnimation()
         videoView?.suspend()
         videoView = null
+
+        if (!adDismissTracked) {
+            onAdDismissed()
+            adDismissTracked = true
+        }
     }
 }
