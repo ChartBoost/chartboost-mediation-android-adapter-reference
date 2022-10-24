@@ -2,6 +2,7 @@ package com.chartboost.helium.referenceadapter.sdk
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -60,8 +61,9 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
     private var isAdRewarded = false
     private var videoView: VideoView? = null
     private var webView: WebView? = null
-    private var videoPlaybackHandler: Handler? = null
+    private var videoPlaybackHandler: Handler? = Handler(Looper.getMainLooper())
     private var adDismissTracked = false
+    private var adShowTracked = false
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,6 +71,8 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
 
         binding = ActivityReferenceFullscreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         isAdRewarded = intent.getBooleanExtra(IS_REWARDED_KEY, false)
         val adUrl = intent.getStringExtra(FULLSCREEN_AD_URL)
@@ -180,8 +184,6 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                 }
             })
 
-            var adShowTracked = false
-            videoPlaybackHandler = Handler(Looper.getMainLooper())
             videoPlaybackHandler?.post(object : Runnable {
                 override fun run() {
                     if (isPlaying && !adShowTracked) {
