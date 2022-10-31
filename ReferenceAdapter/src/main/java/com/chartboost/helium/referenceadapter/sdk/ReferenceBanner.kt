@@ -82,9 +82,8 @@ class ReferenceBanner(
     }
 
     private fun clickthrough() {
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(clickThroughUrl)).apply {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(clickThroughUrl)).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(browserIntent)
+        })
     }
 }

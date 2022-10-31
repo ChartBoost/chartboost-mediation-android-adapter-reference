@@ -19,8 +19,6 @@ import com.chartboost.helium.referenceadapter.R
 import com.chartboost.helium.referenceadapter.databinding.ActivityReferenceFullscreenBinding
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
 import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
-import com.chartboost.heliumsdk.utils.PartnerLogController
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.SHOW_FAILED
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -30,18 +28,23 @@ import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.
 class ReferenceFullscreenActivity : AppCompatActivity() {
     companion object {
         private var onAdShown: () -> Unit = {}
+        private var onAdShowFailed: (String) -> Unit = {}
         private var onAdRewarded: (Int, String) -> Unit = { _, _ -> }
         private var onAdClicked: () -> Unit = {}
         private var onAdDismissed: () -> Unit = {}
 
         fun subscribe(
             shown: () -> Unit,
+            showFailed: (String) -> Unit,
             rewarded: (Int, String) -> Unit,
             clicked: () -> Unit,
             dismissed: () -> Unit
         ) {
             onAdShown = {
                 shown()
+            }
+            onAdShowFailed = { error ->
+                showFailed(error)
             }
             onAdRewarded = { amount, currency ->
                 rewarded(amount, currency)
@@ -75,20 +78,16 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         isAdRewarded = intent.getBooleanExtra(IS_REWARDED_KEY, false)
-        val adUrl = intent.getStringExtra(FULLSCREEN_AD_URL)
-            ?: throw IllegalArgumentException("No creative URL provided")
+        val adUrl = intent.getStringExtra(FULLSCREEN_AD_URL) ?: run {
+            onAdShowFailed("No creative URL provided")
+            finish()
+            return
+        }
 
         if (isAdRewarded) {
-            showRewardedAd(adUrl,
-                onShowFailure = {
-                    PartnerLogController.log(SHOW_FAILED)
-                })
+            showRewardedAd(adUrl)
         } else {
-            showInterstitialAd(adUrl,
-                onShowFailure = {
-                    PartnerLogController.log(SHOW_FAILED)
-                }
-            )
+            showInterstitialAd(adUrl)
         }
     }
 
@@ -114,14 +113,12 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
      * Create and show an interstitial ad.
      */
     @SuppressLint("ClickableViewAccessibility")
-    private fun showInterstitialAd(
-        url: String,
-        onShowFailure: () -> Unit
-    ) {
-        webView = findViewById<View>(R.id.reference_fullscreen_webview) as WebView?
+    private fun showInterstitialAd(url: String) {
+        webView = findViewById<View>(R.id.reference_fullscreen_webview) as? WebView
             ?: run {
-                onShowFailure()
-                throw IllegalStateException("Unable to show interstitial ad. WebView not found.")
+                onAdShowFailed("Failed to load WebView")
+                finish()
+                return
             }
         webView?.run {
             this.visibility = View.VISIBLE
@@ -130,7 +127,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             this.setOnTouchListener(object : OnTouchListener {
                 var startTime: Long = 0
 
-                override fun onTouch(v: View, event: MotionEvent): Boolean {
+                override fun onTouch(view: View, event: MotionEvent): Boolean {
                     if (event.action == MotionEvent.ACTION_DOWN) {
                         startTime = System.currentTimeMillis()
                     }
@@ -153,11 +150,12 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
      * Create and show a rewarded ad.
      */
     @SuppressLint("ClickableViewAccessibility")
-    private fun showRewardedAd(url: String, onShowFailure: () -> Unit) {
+    private fun showRewardedAd(url: String) {
         videoView = findViewById<View>(R.id.reference_fullscreen_videoview) as VideoView?
             ?: run {
-                onShowFailure()
-                throw IllegalStateException("Unable to show rewarded ad. VideoView not found.")
+                onAdShowFailed("Failed to load WebView")
+                finish()
+                return
             }
         videoView?.run {
             this.visibility = View.VISIBLE
@@ -166,7 +164,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             this.setOnTouchListener(object : OnTouchListener {
                 var startTime: Long = 0
 
-                override fun onTouch(v: View?, event: MotionEvent): Boolean {
+                override fun onTouch(view: View, event: MotionEvent): Boolean {
                     if (event.action == MotionEvent.ACTION_DOWN) {
                         startTime = System.currentTimeMillis()
                     }
@@ -204,10 +202,9 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
     }
 
     private fun clickthrough() {
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(clickThroughUrl)).apply {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(clickThroughUrl)).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        startActivity(browserIntent)
+        })
 
         onAdClicked()
     }

@@ -10,11 +10,7 @@ import java.util.*
  */
 class ReferenceSdk {
     companion object {
-        private const val REFERENCE_SDK_VERSION = "1.0.0"
-
-        fun getVersion(): String {
-            return REFERENCE_SDK_VERSION
-        }
+        const val REFERENCE_SDK_VERSION = "1.0.0"
 
         /**
          * Simulate a partner SDK initialization that does nothing and completes after 500 ms.
@@ -25,7 +21,7 @@ class ReferenceSdk {
         }
 
         /**
-         * Simulate a partner SDK computation of a big token.
+         * Simulate a partner SDK computation of a bid token.
          * Using the random UUID as an example. Do NOT copy.
          */
         fun getBidToken(): String {
