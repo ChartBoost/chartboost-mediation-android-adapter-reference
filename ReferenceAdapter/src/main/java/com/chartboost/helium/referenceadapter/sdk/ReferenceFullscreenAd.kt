@@ -23,7 +23,6 @@ class ReferenceFullscreenAd(
     private val adUnitId: String,
     private val adFormat: ReferenceFullscreenAdFormat
 ) : AppCompatActivity() {
-
     enum class ReferenceFullscreenAdFormat(val resUrl: String) {
         INTERSTITIAL("https://chartboost.s3.amazonaws.com/helium/creatives/creative-320x480.png"),
         REWARDED("https://chartboost.s3.amazonaws.com/helium/creatives/cbvideoad-portrait.mp4")
@@ -39,7 +38,7 @@ class ReferenceFullscreenAd(
     }
 
     /**
-     * In this example, there are no "load" and "destroy" actions as the fullscreen ad is tied
+     * In this example, there are no meaningful "load" and "destroy" implementations as the fullscreen ad is tied
      * to the presenting Activity's lifecycle, so those actions will be managed there.
      *
      * See [ReferenceFullscreenActivity] for more information.
@@ -54,26 +53,20 @@ class ReferenceFullscreenAd(
 
     fun show(
         onFullScreenAdImpression: () -> Unit,
+        onFullScreenAdShowFailed: (String) -> Unit,
         onFullScreenAdClicked: () -> Unit,
         onFullScreenAdRewarded: (Int, String) -> Unit,
         onFullScreenAdDismissed: () -> Unit,
-        onFullScreenAdExpired: (error: String) -> Unit
+        onFullScreenAdExpired: () -> Unit
     ) {
-        val fullScreenActivity = Intent(context, ReferenceFullscreenActivity::class.java).apply {
-            putExtra(FULLSCREEN_AD_URL, adFormat.resUrl)
-            putExtra(IS_REWARDED_KEY, adFormat == ReferenceFullscreenAdFormat.REWARDED)
-        }
-
         // Launch a new Activity where the fullscreen ad will be displayed.
-        CoroutineScope(Main).launch(CoroutineExceptionHandler { _, error ->
-            onFullScreenAdExpired(error.message ?: "Unknown error")
+        CoroutineScope(Main).launch(CoroutineExceptionHandler { _, _ ->
+            onFullScreenAdExpired()
         }) {
-            // Since we lose control of the ad obj and events when we launch the new Activity, for the sake of
-            // simplicity we'll fire the following callbacks after a delay.
-            delay(1000L)
-
             ReferenceFullscreenActivity.subscribe(shown = {
                 onFullScreenAdImpression()
+            }, showFailed = {
+                onFullScreenAdShowFailed(it)
             }, clicked = {
                 onFullScreenAdClicked()
             }, rewarded = { amount, currency ->
@@ -82,12 +75,15 @@ class ReferenceFullscreenAd(
                 onFullScreenAdDismissed()
             })
 
-            context.startActivity(fullScreenActivity)
+            context.startActivity(Intent(context, ReferenceFullscreenActivity::class.java).apply {
+                putExtra(FULLSCREEN_AD_URL, adFormat.resUrl)
+                putExtra(IS_REWARDED_KEY, adFormat == ReferenceFullscreenAdFormat.REWARDED)
+            })
         }
     }
 
     /**
-     * In this example, there are no "load" and "destroy" actions as the fullscreen ad is tied
+     * In this example, there are no meaningful "load" and "destroy" implementations as the fullscreen ad is tied
      * to the presenting Activity's lifecycle, so those actions will be managed there.
      *
      * See [ReferenceFullscreenActivity] for more information.

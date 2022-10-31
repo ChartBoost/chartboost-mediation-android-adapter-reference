@@ -35,7 +35,7 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this value to return the version of the partner SDK.
      */
     override val partnerSdkVersion: String
-        get() = ReferenceSdk.getVersion()
+        get() = ReferenceSdk.REFERENCE_SDK_VERSION
 
     /**
      * Override this value to return the version of the mediation adapter.
@@ -357,8 +357,11 @@ class ReferenceAdapter : PartnerAdapter {
                                 "Unable to notify partner ad impression. Listener is null."
                             )
 
-                            // For simplicity, the reference adapter always assumes successes.
                             continuation.resume(Result.success(partnerAd))
+                        },
+                        onFullScreenAdShowFailed = {
+                            PartnerLogController.log(SHOW_FAILED, it)
+                            continuation.resume(Result.failure(HeliumAdException(HeliumErrorCode.INTERNAL)))
                         },
                         onFullScreenAdDismissed = {
                             listener?.let {
@@ -393,7 +396,7 @@ class ReferenceAdapter : PartnerAdapter {
                                 )
                             }
                         },
-                        onFullScreenAdExpired = { error ->
+                        onFullScreenAdExpired = {
                             listener?.let {
                                 PartnerLogController.log(DID_EXPIRE)
                                 it.onPartnerAdExpired(partnerAd)
