@@ -7,6 +7,6 @@ pluginManagement {
 }
 
 rootProject.name = "ReferenceAdapter"
-include ':ReferenceAdapter'
-include ':android-helium-sdk'
-include ':Helium'
+include(":ReferenceAdapter")
+include(":android-helium-sdk")
+include(":Helium")
