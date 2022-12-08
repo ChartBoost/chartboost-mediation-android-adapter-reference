@@ -361,7 +361,7 @@ class ReferenceAdapter : PartnerAdapter {
                         },
                         onFullScreenAdShowFailed = {
                             PartnerLogController.log(SHOW_FAILED, it)
-                            continuation.resume(Result.failure(HeliumAdException(HeliumErrorCode.INTERNAL)))
+                            continuation.resume(Result.failure(HeliumAdException(HeliumError.HE_SHOW_FAILURE_UNKNOWN)))
                         },
                         onFullScreenAdDismissed = {
                             listener?.let {
@@ -411,11 +411,11 @@ class ReferenceAdapter : PartnerAdapter {
                 }
             } else {
                 PartnerLogController.log(SHOW_FAILED, "Ad is not a ReferenceFullscreenAd.")
-                return Result.failure(HeliumAdException(HeliumErrorCode.INTERNAL))
+                return Result.failure(HeliumAdException(HeliumError.HE_SHOW_FAILURE_WRONG_RESOURCE_TYPE))
             }
         } ?: run {
             PartnerLogController.log(SHOW_FAILED, "Ad is null.")
-            return Result.failure(HeliumAdException(HeliumErrorCode.INTERNAL))
+            return Result.failure(HeliumAdException(HeliumError.HE_SHOW_FAILURE_AD_NOT_FOUND))
         }
     }
 
