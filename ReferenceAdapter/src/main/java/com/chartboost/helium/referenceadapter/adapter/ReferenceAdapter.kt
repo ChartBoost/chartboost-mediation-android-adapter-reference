@@ -379,7 +379,7 @@ class ReferenceAdapter : PartnerAdapter {
                         onFullScreenAdRewarded = { amount, label ->
                             listener?.let {
                                 PartnerLogController.log(DID_REWARD)
-                                it.onPartnerAdRewarded(partnerAd, Reward(amount, label))
+                                it.onPartnerAdRewarded(partnerAd)
                             } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,
