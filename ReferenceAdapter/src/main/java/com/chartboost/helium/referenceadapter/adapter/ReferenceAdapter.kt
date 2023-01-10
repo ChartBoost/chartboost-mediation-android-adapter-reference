@@ -176,9 +176,11 @@ class ReferenceAdapter : PartnerAdapter {
         request: PreBidRequest
     ): Map<String, String> {
         PartnerLogController.log(BIDDER_INFO_FETCH_STARTED)
-        PartnerLogController.log(BIDDER_INFO_FETCH_SUCCEEDED)
 
-        return mapOf("bid_token" to ReferenceSdk.getBidToken())
+        val token = ReferenceSdk.getBidToken()
+
+        PartnerLogController.log(if (token.isNotEmpty()) BIDDER_INFO_FETCH_SUCCEEDED else BIDDER_INFO_FETCH_FAILED)
+        return mapOf("bid_token" to token)
     }
 
     /**
