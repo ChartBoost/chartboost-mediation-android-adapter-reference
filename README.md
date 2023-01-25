@@ -1,19 +1,19 @@
 # Chartboost Mediation Reference Adapter
 
-The Chartboost Mediation Reference adapter mediates the Reference SDK into the Chartboost Mediation SDK.
+The Chartboost Mediation Reference adapter mediates the Reference SDK via the Chartboost Mediation SDK.
 
 ## Minimum Requirements
 
-| Plugin | Version |
-| ------ | ------ |
-| Chartboost Mediation SDK | 4.0.0+ |
-| Android API | 21+ |
+| Plugin                   | Version |
+| ------------------------ | ------- |
+| Chartboost Mediation SDK | 4.0.0+  |
+| Android API              | 21+     |
 
 ## Integration
 
 In your `build.gradle`, add the following entry:
 ```
-    implementation "com.chartboost:mediation-adapter-reference:4.1.0.0.0"
+    implementation "com.chartboost:chartboost-mediation-adapter-reference:4.1.0.0.0"
 ```
 
 ## Contributions
