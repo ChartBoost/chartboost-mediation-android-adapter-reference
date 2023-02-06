@@ -5,7 +5,7 @@
  * license that can be found in the LICENSE file.
  */
 
-package com.chartboost.helium.referenceadapter.sdk
+package com.chartboost.mediation.referenceadapter.sdk
 
 import kotlinx.coroutines.delay
 import java.util.*

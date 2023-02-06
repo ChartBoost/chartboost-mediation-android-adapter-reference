@@ -5,20 +5,20 @@
  * license that can be found in the LICENSE file.
  */
 
-package com.chartboost.helium.referenceadapter.adapter
+package com.chartboost.mediation.referenceadapter.adapter
 
 import android.content.Context
 import android.util.Size
-import com.chartboost.helium.referenceadapter.BuildConfig
-import com.chartboost.helium.referenceadapter.sdk.ReferenceBanner
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
-import com.chartboost.helium.referenceadapter.sdk.ReferenceSdk
 import com.chartboost.heliumsdk.domain.*
 import com.chartboost.heliumsdk.utils.LogController
 import com.chartboost.heliumsdk.utils.PartnerLogController
 import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
+import com.chartboost.mediation.referenceadapter.BuildConfig
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceBanner
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceSdk
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -27,14 +27,14 @@ import kotlin.coroutines.resume
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
  *
  * An adapter that is used for reference purposes. It is designed to showcase and test the
- * mediation contract of the Helium SDK.
+ * mediation contract of the Chartboost Mediation SDK.
  *
- * Implementations of the Helium mediation interface may roughly model their own design after this class,
+ * Implementations of the Chartboost Mediation interface may roughly model their own design after this class,
  * but do NOT call this adapter directly.
  */
 class ReferenceAdapter : PartnerAdapter {
     /**
-     * A map of Helium's listeners for the corresponding Helium placements.
+     * A map of Chartboost Mediation's listeners for the corresponding Chartboost placements.
      */
     private val listeners = mutableMapOf<String, PartnerAdListener>()
 
@@ -48,16 +48,16 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this value to return the version of the mediation adapter.
      *
      * You may version the adapter using any preferred convention, but it is recommended to apply the
-     * following format if the adapter will be published by Helium:
+     * following format if the adapter will be published by Chartboost Mediation:
      *
-     * Helium.Partner.Adapter
+     * Chartboost Mediation.Partner.Adapter
      *
-     * "Helium" represents the Helium SDK’s major version that is compatible with this adapter. This must be 1 digit.
+     * "Chartboost Mediation" represents the Chartboost Mediation SDK’s major version that is compatible with this adapter. This must be 1 digit.
      * "Partner" represents the partner SDK’s major.minor.patch.x (where x is optional) version that is compatible with this adapter. This can be 3-4 digits.
      * "Adapter" represents this adapter’s version (starting with 0), which resets to 0 when the partner SDK’s version changes. This must be 1 digit.
      */
     override val adapterVersion: String
-        get() = BuildConfig.HELIUM_REFERENCE_ADAPTER_VERSION
+        get() = BuildConfig.CHARTBOOST_MEDIATION_REFERENCE_ADAPTER_VERSION
 
     /**
      * Override this value to return the name of the partner SDK.
@@ -75,7 +75,7 @@ class ReferenceAdapter : PartnerAdapter {
      * Override this method to initialize the partner SDK so that it's ready to request and display ads.
      *
      * @param context The current Context.
-     * @param partnerConfiguration The necessary initialization data provided by Helium.
+     * @param partnerConfiguration The necessary initialization data provided by Chartboost Mediation.
      *
      * @return Result.success(Unit) if the initialization was successful, Result.failure(Exception) otherwise.
      */
@@ -95,7 +95,7 @@ class ReferenceAdapter : PartnerAdapter {
      *
      * @param context The current Context.
      * @param request The relevant data associated with the current ad load call.
-     * @param partnerAdListener The listener to notify the Helium SDK of the partner ad events.
+     * @param partnerAdListener The listener to notify the Chartboost Mediation SDK of the partner ad events.
      *
      * @return Result.success(PartnerAd) if the request was successful, Result.failure(Exception) otherwise.
      */
@@ -107,7 +107,7 @@ class ReferenceAdapter : PartnerAdapter {
         PartnerLogController.log(LOAD_STARTED)
 
         // Save the listener for later use.
-        listeners[request.heliumPlacement] = partnerAdListener
+        listeners[request.chartboostPlacement] = partnerAdListener
 
         delay(1000L)
 
@@ -192,7 +192,7 @@ class ReferenceAdapter : PartnerAdapter {
 
     /**
      * Override this method to notify your partner SDK of GDPR applicability as determined by
-     * the Helium SDK.
+     * the Chartboost Mediation SDK.
      *
      * @param context The current [Context].
      * @param applies True if GDPR applies, false otherwise.
@@ -222,7 +222,7 @@ class ReferenceAdapter : PartnerAdapter {
 
     /**
      * Override this method to notify your partner SDK of the CCPA privacy String as supplied by
-     * the Helium SDK.
+     * the Chartboost Mediation SDK.
      *
      * @param context The current [Context].
      * @param hasGrantedCcpaConsent True if the user has granted CCPA consent, false otherwise.
@@ -241,7 +241,7 @@ class ReferenceAdapter : PartnerAdapter {
 
     /**
      * Override this method to notify your partner SDK of the COPPA subjectivity as determined by
-     * the Helium SDK.
+     * the Chartboost Mediation SDK.
      *
      * @param context The current [Context].
      * @param isSubjectToCoppa True if the user is subject to COPPA, false otherwise.
@@ -268,7 +268,7 @@ class ReferenceAdapter : PartnerAdapter {
         val listener = listeners[request.partnerPlacement]
         val ad = ReferenceBanner(
             context, request.partnerPlacement,
-            heliumToReferenceBannerSize(request.size)
+            chartboostMediationToReferenceBannerSize(request.size)
         )
 
         ad.load(
@@ -302,13 +302,13 @@ class ReferenceAdapter : PartnerAdapter {
     }
 
     /**
-     * Map Helium's banner sizes to the reference SDK's supported sizes.
+     * Map Chartboost Mediation's banner sizes to the reference SDK's supported sizes.
      *
-     * @param size The Helium banner [Size]
+     * @param size The Chartboost Mediation banner [Size]
      *
      * @return The reference SDK's equivalent [ReferenceBanner.Size].
      */
-    private fun heliumToReferenceBannerSize(size: Size?): ReferenceBanner.Size {
+    private fun chartboostMediationToReferenceBannerSize(size: Size?): ReferenceBanner.Size {
         return size?.height?.let {
             when {
                 it in 50 until 90 -> ReferenceBanner.Size.BANNER
@@ -375,7 +375,7 @@ class ReferenceAdapter : PartnerAdapter {
                         },
                         onFullScreenAdShowFailed = {
                             PartnerLogController.log(SHOW_FAILED, it)
-                            continuation.resume(Result.failure(HeliumAdException(HeliumError.HE_SHOW_FAILURE_UNKNOWN)))
+                            continuation.resume(Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN)))
                         },
                         onFullScreenAdDismissed = {
                             listener?.let {
@@ -425,11 +425,11 @@ class ReferenceAdapter : PartnerAdapter {
                 }
             } else {
                 PartnerLogController.log(SHOW_FAILED, "Ad is not a ReferenceFullscreenAd.")
-                return Result.failure(HeliumAdException(HeliumError.HE_SHOW_FAILURE_WRONG_RESOURCE_TYPE))
+                return Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_WRONG_RESOURCE_TYPE))
             }
         } ?: run {
             PartnerLogController.log(SHOW_FAILED, "Ad is null.")
-            return Result.failure(HeliumAdException(HeliumError.HE_SHOW_FAILURE_AD_NOT_FOUND))
+            return Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_AD_NOT_FOUND))
         }
     }
 

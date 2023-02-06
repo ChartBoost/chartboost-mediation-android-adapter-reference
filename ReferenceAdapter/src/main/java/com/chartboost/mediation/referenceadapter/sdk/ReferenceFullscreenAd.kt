@@ -5,7 +5,7 @@
  * license that can be found in the LICENSE file.
  */
 
-package com.chartboost.helium.referenceadapter.sdk
+package com.chartboost.mediation.referenceadapter.sdk
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -16,7 +16,6 @@ import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
