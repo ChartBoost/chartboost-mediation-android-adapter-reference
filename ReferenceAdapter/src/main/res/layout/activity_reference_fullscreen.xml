@@ -12,7 +12,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/background_dark"
-    tools:context="com.chartboost.mediation.referenceadapter.com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenActivity">
+    tools:context="com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenActivity">
 
     <WebView
         android:id="@+id/reference_fullscreen_webview"
