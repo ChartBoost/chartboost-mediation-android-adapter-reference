@@ -5,7 +5,7 @@
  * license that can be found in the LICENSE file.
  */
 
-package com.chartboost.helium.referenceadapter.sdk
+package com.chartboost.mediation.referenceadapter.sdk
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -13,7 +13,6 @@ import android.content.Intent
 import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.INVISIBLE
 import android.view.ViewConfiguration
 import android.webkit.WebView
 import android.widget.LinearLayout
@@ -48,7 +47,7 @@ class ReferenceBanner(
         );
     }
 
-    private var clickThroughUrl = "https://www.chartboost.com/helium/"
+    private var clickThroughUrl = "https://www.chartboost.com/mediate/"
 
     @SuppressLint("ClickableViewAccessibility")
     fun load(

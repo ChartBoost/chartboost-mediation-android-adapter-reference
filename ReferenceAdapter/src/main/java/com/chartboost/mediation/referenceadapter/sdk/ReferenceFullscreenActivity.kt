@@ -5,7 +5,7 @@
  * license that can be found in the LICENSE file.
  */
 
-package com.chartboost.helium.referenceadapter.sdk
+package com.chartboost.mediation.referenceadapter.sdk
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -22,10 +22,10 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
-import com.chartboost.helium.referenceadapter.R
-import com.chartboost.helium.referenceadapter.databinding.ActivityReferenceFullscreenBinding
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
-import com.chartboost.helium.referenceadapter.sdk.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
+import com.chartboost.mediation.referenceadapter.R
+import com.chartboost.mediation.referenceadapter.databinding.ActivityReferenceFullscreenBinding
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -67,7 +67,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityReferenceFullscreenBinding
 
-    private var clickThroughUrl = "https://www.chartboost.com/helium/"
+    private var clickThroughUrl = "https://www.chartboost.com/mediate/"
     private var isAdRewarded = false
     private var videoView: VideoView? = null
     private var webView: WebView? = null
