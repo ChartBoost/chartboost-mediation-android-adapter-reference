@@ -123,6 +123,12 @@ class ReferenceAdapter : PartnerAdapter {
                 AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
                     loadFullscreenAd(context, request)
                 }
+                AdFormat.REWARDED_INTERSTITIAL -> {
+                    PartnerLogController.log(LOAD_FAILED)
+                    return Result.failure(
+                        Exception("Rewarded interstitial ads are not supported by the reference adapter.")
+                    )
+                }
             }
         )
     }
@@ -166,6 +172,12 @@ class ReferenceAdapter : PartnerAdapter {
             }
             AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
                 showFullscreenAd(partnerAd)
+            }
+            AdFormat.REWARDED_INTERSTITIAL -> {
+                PartnerLogController.log(SHOW_FAILED)
+                Result.failure(
+                    Exception("Rewarded interstitial ads are not supported by the reference adapter.")
+                )
             }
         }
     }
