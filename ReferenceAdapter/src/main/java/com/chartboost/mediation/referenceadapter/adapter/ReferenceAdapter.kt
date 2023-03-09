@@ -332,7 +332,7 @@ class ReferenceAdapter : PartnerAdapter {
             context = context,
             adUnitId = request.partnerPlacement,
             adFormat = when (request.format) {
-                AdFormat.INTERSTITIAL -> REWARDED_INTERSTITIAL // TODO: Revert to INTERSTITIAL
+                AdFormat.INTERSTITIAL -> INTERSTITIAL
                 AdFormat.REWARDED -> REWARDED
                 AdFormat.REWARDED_INTERSTITIAL -> REWARDED_INTERSTITIAL
                 else -> {
