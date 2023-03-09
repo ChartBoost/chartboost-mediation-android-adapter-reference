@@ -161,14 +161,8 @@ class ReferenceAdapter : PartnerAdapter {
                 PartnerLogController.log(SHOW_SUCCEEDED)
                 Result.success(partnerAd)
             }
-            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
+            AdFormat.INTERSTITIAL, AdFormat.REWARDED, AdFormat.REWARDED_INTERSTITIAL -> {
                 showFullscreenAd(partnerAd)
-            }
-            AdFormat.REWARDED_INTERSTITIAL -> {
-                PartnerLogController.log(SHOW_FAILED)
-                Result.failure(
-                    Exception("Rewarded interstitial ads are not supported by the reference adapter.")
-                )
             }
         }
     }
@@ -335,9 +329,10 @@ class ReferenceAdapter : PartnerAdapter {
         request: PartnerAdLoadRequest,
     ): PartnerAd {
         val ad = ReferenceFullscreenAd(
-            context, request.partnerPlacement,
-            when (request.format) {
-                AdFormat.INTERSTITIAL -> INTERSTITIAL
+            context = context,
+            adUnitId = request.partnerPlacement,
+            adFormat = when (request.format) {
+                AdFormat.INTERSTITIAL -> REWARDED_INTERSTITIAL // TODO: Revert to INTERSTITIAL
                 AdFormat.REWARDED -> REWARDED
                 AdFormat.REWARDED_INTERSTITIAL -> REWARDED_INTERSTITIAL
                 else -> {
@@ -400,7 +395,7 @@ class ReferenceAdapter : PartnerAdapter {
                                 )
                             }
                         },
-                        onFullScreenAdRewarded = { amount, label ->
+                        onFullScreenAdRewarded = { _, _ ->
                             listener?.let {
                                 PartnerLogController.log(DID_REWARD)
                                 it.onPartnerAdRewarded(partnerAd)

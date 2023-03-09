@@ -10,22 +10,30 @@ package com.chartboost.mediation.referenceadapter.sdk
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
 import android.view.ViewConfiguration
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.TextView
 import android.widget.VideoView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.marginRight
 import com.chartboost.mediation.referenceadapter.R
 import com.chartboost.mediation.referenceadapter.databinding.ActivityReferenceFullscreenBinding
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
-import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.Companion.IS_REWARDED_KEY
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_TYPE
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -67,13 +75,16 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityReferenceFullscreenBinding
 
+    private val rewardedInterstitialPlaybackDuration = 5000L
+
     private var clickThroughUrl = "https://www.chartboost.com/mediate/"
-    private var isAdRewarded = false
+    private var adType: ReferenceFullscreenAd.ReferenceFullscreenAdFormat? = null
     private var videoView: VideoView? = null
     private var webView: WebView? = null
     private var videoPlaybackHandler: Handler? = Handler(Looper.getMainLooper())
     private var adDismissTracked = false
     private var adShowTracked = false
+    private var remainingTimeMillis = rewardedInterstitialPlaybackDuration
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,17 +95,34 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
 
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
-        isAdRewarded = intent.getBooleanExtra(IS_REWARDED_KEY, false)
+        adType = intent.getStringExtra(FULLSCREEN_AD_TYPE)?.let {
+            ReferenceFullscreenAd.ReferenceFullscreenAdFormat.valueOf(it)
+        } ?: run {
+            onAdShowFailed("No fullscreen ad type provided")
+            finish()
+            return
+        }
+
         val adUrl = intent.getStringExtra(FULLSCREEN_AD_URL) ?: run {
             onAdShowFailed("No creative URL provided")
             finish()
             return
         }
 
-        if (isAdRewarded) {
-            showRewardedAd(adUrl)
-        } else {
-            showInterstitialAd(adUrl)
+        when (adType) {
+            ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED -> {
+                showRewardedAd(adUrl)
+            }
+            ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL -> {
+                showInterstitialAd(adUrl)
+            }
+            ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED_INTERSTITIAL -> {
+                showRewardedInterstitialAd(adUrl)
+            }
+            else -> {
+                onAdShowFailed("Invalid fullscreen ad type provided")
+                finish()
+            }
         }
     }
 
@@ -105,9 +133,9 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
          * If the current creative is a rewarded ad, it's already deliberately terminated when the use
          * clicks through (videoView is null). Now that the user is back, skip the ad Activity.
          */
-        if (isAdRewarded && videoView == null) {
-            cleanUp().also { finish() }
-        }
+//        if (adType && videoView == null) {
+//            cleanUp().also { finish() }
+//        }
     }
 
     override fun onDestroy() {
@@ -119,7 +147,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
     /**
      * Create and show an interstitial ad.
      */
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility", "SetTextI18n")
     private fun showInterstitialAd(url: String) {
         webView = findViewById<View>(R.id.reference_fullscreen_webview) as? WebView
             ?: run {
@@ -148,6 +176,50 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                     return true
                 }
             })
+
+            if (adType == ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED_INTERSTITIAL) {
+                val timerView = binding.referenceFullscreenTimerview
+                val closeButton = binding.referenceFullscreenClosebutton
+                val params = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = Gravity.TOP or Gravity.END
+                    setMargins(0, 0, 10, 0)
+                }
+
+                var timer: CountDownTimer? = null
+
+                closeButton.setOnClickListener {
+                    timer?.cancel()
+
+                    if (remainingTimeMillis >= 1000) {
+                        AlertDialog.Builder(this@ReferenceFullscreenActivity)
+                            .setTitle("Skip Ad")
+                            .setMessage("Are you sure you want to skip this ad?")
+                            .setPositiveButton("Yes") { _, _ ->
+                                onAdDismissed()
+                                finish()
+                            }
+                            .setNegativeButton("No") { _, _ ->
+                                timer = createCountdownTimer(
+                                    millisInFuture = remainingTimeMillis,
+                                    closeButton = closeButton,
+                                    timerView = timerView
+                                )
+                                timer?.start()
+                            }
+                            .create().show()
+                    }
+                }
+
+                timer = createCountdownTimer(
+                    millisInFuture = rewardedInterstitialPlaybackDuration,
+                    closeButton = closeButton,
+                    timerView = timerView
+                )
+                timer?.start()
+            }
 
             onAdShown()
         }
@@ -208,12 +280,44 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Create and show a rewarded interstitial ad. For simplicity, this implementation reuses the
+     * interstitial ad show logic but add rewarding capabilities. Your implementation may differ.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun showRewardedInterstitialAd(url: String) {
+        showInterstitialAd(url)
+    }
+
     private fun clickthrough() {
         startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(clickThroughUrl)).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         })
 
         onAdClicked()
+    }
+
+    private fun createCountdownTimer(
+        millisInFuture: Long,
+        closeButton: Button,
+        timerView: TextView
+    ): CountDownTimer {
+        return object : CountDownTimer(millisInFuture, 1000) {
+            @SuppressLint("SetTextI18n")
+            override fun onTick(millisUntilFinished: Long) {
+                remainingTimeMillis = millisUntilFinished
+                timerView.text = "Rewarding in ${millisUntilFinished / 1000}"
+
+                if (remainingTimeMillis < 1000) {
+                    closeButton.visibility = View.GONE
+                    timerView.visibility = View.GONE
+                }
+            }
+
+            override fun onFinish() {
+                onAdRewarded(1, "coin")
+            }
+        }
     }
 
     private fun cleanUp() {
