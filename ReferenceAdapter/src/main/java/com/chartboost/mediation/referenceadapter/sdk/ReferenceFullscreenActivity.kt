@@ -128,12 +128,12 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         super.onResume()
 
         /**
-         * If the current creative is a rewarded ad, it's already deliberately terminated when the use
+         * If the current creative is a rewarded video ad, it's already deliberately terminated when the use
          * clicks through (videoView is null). Now that the user is back, skip the ad Activity.
          */
-//        if (adType && videoView == null) {
-//            cleanUp().also { finish() }
-//        }
+        if (adType == ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED && videoView == null) {
+            cleanUp().also { finish() }
+        }
     }
 
     override fun onDestroy() {
