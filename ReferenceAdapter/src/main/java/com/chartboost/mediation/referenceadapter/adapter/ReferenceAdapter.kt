@@ -34,7 +34,7 @@ import kotlin.coroutines.resume
  */
 class ReferenceAdapter : PartnerAdapter {
     /**
-     * A map of Chartboost Mediation's listeners for the corresponding Chartboost placements.
+     * A map of Chartboost Mediation's listeners for the corresponding load identifier.
      */
     private val listeners = mutableMapOf<String, PartnerAdListener>()
 
@@ -107,24 +107,26 @@ class ReferenceAdapter : PartnerAdapter {
         PartnerLogController.log(LOAD_STARTED)
 
         // Save the listener for later use.
-        listeners[request.chartboostPlacement] = partnerAdListener
+        listeners[request.identifier] = partnerAdListener
 
         delay(1000L)
 
-        // For simplicity, the reference adapter always assumes successes.
-        return Result.success(
-            when (request.format) {
-                AdFormat.BANNER -> {
-                    loadBannerAd(context, request)
-                }
-
-                // For simplicity, this example uses a unified API for both interstitial and rewarded
-                // ads. Your implementations may differ.
-                AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
-                    loadFullscreenAd(context, request)
-                }
+        return when (request.format) {
+            AdFormat.BANNER -> {
+                Result.success(loadBannerAd(context, request))
             }
-        )
+
+            // For simplicity, this example uses a unified API for both interstitial and rewarded
+            // ads. Your implementations may differ.
+            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
+                Result.success(loadFullscreenAd(context, request))
+            }
+
+            else -> {
+                PartnerLogController.log(LOAD_FAILED)
+                Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT))
+            }
+        }
     }
 
     /**
@@ -140,7 +142,7 @@ class ReferenceAdapter : PartnerAdapter {
         destroyBannerAd(partnerAd)
         destroyFullscreenAd(partnerAd)
 
-        listeners.remove(partnerAd.request.partnerPlacement)
+        listeners.remove(partnerAd.request.identifier)
 
         // For simplicity, the reference adapter always assumes successes.
         PartnerLogController.log(INVALIDATE_SUCCEEDED)
@@ -166,6 +168,10 @@ class ReferenceAdapter : PartnerAdapter {
             }
             AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
                 showFullscreenAd(partnerAd)
+            }
+            else -> {
+                PartnerLogController.log(SHOW_FAILED)
+                Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
             }
         }
     }
@@ -265,7 +271,7 @@ class ReferenceAdapter : PartnerAdapter {
         context: Context,
         request: PartnerAdLoadRequest
     ): PartnerAd {
-        val listener = listeners[request.partnerPlacement]
+        val listener = listeners[request.identifier]
         val ad = ReferenceBanner(
             context, request.partnerPlacement,
             chartboostMediationToReferenceBannerSize(request.size)
@@ -358,7 +364,7 @@ class ReferenceAdapter : PartnerAdapter {
     ): Result<PartnerAd> {
         partnerAd.ad?.let { ad ->
             if (ad is ReferenceFullscreenAd) {
-                val listener = listeners[partnerAd.request.partnerPlacement]
+                val listener = listeners[partnerAd.request.identifier]
 
                 return suspendCancellableCoroutine { continuation ->
                     ad.show(
