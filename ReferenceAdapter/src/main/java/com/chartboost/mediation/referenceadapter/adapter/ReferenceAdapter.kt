@@ -110,18 +110,19 @@ class ReferenceAdapter : PartnerAdapter {
 
         delay(1000L)
 
-        // For simplicity, the reference adapter always assumes successes.
-        return Result.success(
-            when (request.format) {
-                AdFormat.BANNER -> {
-                    loadBannerAd(context, request)
-                }
-
-                AdFormat.INTERSTITIAL, AdFormat.REWARDED, AdFormat.REWARDED_INTERSTITIAL -> {
-                    loadFullscreenAd(context, request)
-                }
+        return when (request.format) {
+            AdFormat.BANNER -> {
+                Result.success(loadBannerAd(context, request))
             }
-        )
+
+            AdFormat.INTERSTITIAL, AdFormat.REWARDED, AdFormat.REWARDED_INTERSTITIAL -> {
+                Result.success(loadFullscreenAd(context, request))
+            }
+            else -> {
+                PartnerLogController.log(LOAD_FAILED)
+                Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT))
+            }
+        }
     }
 
     /**
@@ -163,6 +164,10 @@ class ReferenceAdapter : PartnerAdapter {
             }
             AdFormat.INTERSTITIAL, AdFormat.REWARDED, AdFormat.REWARDED_INTERSTITIAL -> {
                 showFullscreenAd(partnerAd)
+            }
+            else -> {
+                PartnerLogController.log(SHOW_FAILED)
+                Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
             }
         }
     }
