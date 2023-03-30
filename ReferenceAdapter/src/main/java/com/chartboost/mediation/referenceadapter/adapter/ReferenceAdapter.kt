@@ -114,12 +114,16 @@ class ReferenceAdapter : PartnerAdapter {
             AdFormat.BANNER -> {
                 Result.success(loadBannerAd(context, request))
             }
-            AdFormat.INTERSTITIAL, AdFormat.REWARDED, AdFormat.REWARDED_INTERSTITIAL -> {
+            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
                 Result.success(loadFullscreenAd(context, request))
             }
             else -> {
-                PartnerLogController.log(LOAD_FAILED)
-                Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT))
+                if (request.format.key == "rewarded_interstitial") {
+                    Result.success(loadFullscreenAd(context, request))
+                } else {
+                    PartnerLogController.log(LOAD_FAILED)
+                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT))
+                }
             }
         }
     }
@@ -161,12 +165,16 @@ class ReferenceAdapter : PartnerAdapter {
                 PartnerLogController.log(SHOW_SUCCEEDED)
                 Result.success(partnerAd)
             }
-            AdFormat.INTERSTITIAL, AdFormat.REWARDED, AdFormat.REWARDED_INTERSTITIAL -> {
+            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
                 showFullscreenAd(partnerAd)
             }
             else -> {
-                PartnerLogController.log(SHOW_FAILED)
-                Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
+                if (partnerAd.request.format.key == "rewarded_interstitial") {
+                    showFullscreenAd(partnerAd)
+                } else {
+                    PartnerLogController.log(SHOW_FAILED)
+                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
+                }
             }
         }
     }
@@ -338,10 +346,13 @@ class ReferenceAdapter : PartnerAdapter {
             adFormat = when (request.format) {
                 AdFormat.INTERSTITIAL -> INTERSTITIAL
                 AdFormat.REWARDED -> REWARDED
-                AdFormat.REWARDED_INTERSTITIAL -> REWARDED_INTERSTITIAL
                 else -> {
-                    PartnerLogController.log(LOAD_FAILED)
-                    throw IllegalArgumentException("Unsupported ad format: ${request.format}")
+                    if (request.format.key == "rewarded_interstitial") {
+                        REWARDED_INTERSTITIAL
+                    } else {
+                        PartnerLogController.log(LOAD_FAILED)
+                        throw IllegalArgumentException("Unsupported ad format: ${request.format}")
+                    }
                 }
             }
         )
