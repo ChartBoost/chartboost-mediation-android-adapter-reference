@@ -33,7 +33,7 @@ import kotlin.coroutines.resume
  */
 class ReferenceAdapter : PartnerAdapter {
     /**
-     * A map of Chartboost Mediation's listeners for the corresponding Chartboost placements.
+     * A map of Chartboost Mediation's listeners for the corresponding load identifier.
      */
     private val listeners = mutableMapOf<String, PartnerAdListener>()
 
@@ -106,7 +106,7 @@ class ReferenceAdapter : PartnerAdapter {
         PartnerLogController.log(LOAD_STARTED)
 
         // Save the listener for later use.
-        listeners[request.chartboostPlacement] = partnerAdListener
+        listeners[request.identifier] = partnerAdListener
 
         delay(1000L)
 
@@ -114,7 +114,6 @@ class ReferenceAdapter : PartnerAdapter {
             AdFormat.BANNER -> {
                 Result.success(loadBannerAd(context, request))
             }
-
             AdFormat.INTERSTITIAL, AdFormat.REWARDED, AdFormat.REWARDED_INTERSTITIAL -> {
                 Result.success(loadFullscreenAd(context, request))
             }
@@ -138,7 +137,7 @@ class ReferenceAdapter : PartnerAdapter {
         destroyBannerAd(partnerAd)
         destroyFullscreenAd(partnerAd)
 
-        listeners.remove(partnerAd.request.partnerPlacement)
+        listeners.remove(partnerAd.request.identifier)
 
         // For simplicity, the reference adapter always assumes successes.
         PartnerLogController.log(INVALIDATE_SUCCEEDED)
@@ -267,7 +266,7 @@ class ReferenceAdapter : PartnerAdapter {
         context: Context,
         request: PartnerAdLoadRequest
     ): PartnerAd {
-        val listener = listeners[request.partnerPlacement]
+        val listener = listeners[request.identifier]
         val ad = ReferenceBanner(
             context, request.partnerPlacement,
             chartboostMediationToReferenceBannerSize(request.size)
@@ -364,7 +363,7 @@ class ReferenceAdapter : PartnerAdapter {
     ): Result<PartnerAd> {
         partnerAd.ad?.let { ad ->
             if (ad is ReferenceFullscreenAd) {
-                val listener = listeners[partnerAd.request.partnerPlacement]
+                val listener = listeners[partnerAd.request.identifier]
 
                 return suspendCancellableCoroutine { continuation ->
                     ad.show(
