@@ -114,12 +114,10 @@ class ReferenceAdapter : PartnerAdapter {
             AdFormat.BANNER -> {
                 Result.success(loadBannerAd(context, request))
             }
-            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
-                Result.success(loadFullscreenAd(context, request))
-            }
+            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> loadFullscreenAd(context, request)
             else -> {
                 if (request.format.key == "rewarded_interstitial") {
-                    Result.success(loadFullscreenAd(context, request))
+                    loadFullscreenAd(context, request)
                 } else {
                     PartnerLogController.log(LOAD_FAILED)
                     Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT))
@@ -339,7 +337,7 @@ class ReferenceAdapter : PartnerAdapter {
     private fun loadFullscreenAd(
         context: Context,
         request: PartnerAdLoadRequest,
-    ): PartnerAd {
+    ): Result<PartnerAd> {
         val ad = ReferenceFullscreenAd(
             context = context,
             adUnitId = request.partnerPlacement,
@@ -351,7 +349,9 @@ class ReferenceAdapter : PartnerAdapter {
                         REWARDED_INTERSTITIAL
                     } else {
                         PartnerLogController.log(LOAD_FAILED)
-                        throw IllegalArgumentException("Unsupported ad format: ${request.format}")
+                        return Result.failure(
+                            ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT)
+                        )
                     }
                 }
             }
@@ -359,7 +359,7 @@ class ReferenceAdapter : PartnerAdapter {
         ad.load(request.adm)
 
         PartnerLogController.log(LOAD_SUCCEEDED)
-        return createPartnerAd(ad, request)
+        return Result.success(createPartnerAd(ad, request))
     }
 
     /**
