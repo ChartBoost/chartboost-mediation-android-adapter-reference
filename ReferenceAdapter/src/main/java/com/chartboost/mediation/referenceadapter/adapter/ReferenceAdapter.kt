@@ -9,10 +9,48 @@ package com.chartboost.mediation.referenceadapter.adapter
 
 import android.content.Context
 import android.util.Size
-import com.chartboost.heliumsdk.domain.*
+import com.chartboost.heliumsdk.domain.AdFormat
+import com.chartboost.heliumsdk.domain.ChartboostMediationAdException
+import com.chartboost.heliumsdk.domain.ChartboostMediationError
+import com.chartboost.heliumsdk.domain.GdprConsentStatus
+import com.chartboost.heliumsdk.domain.PartnerAd
+import com.chartboost.heliumsdk.domain.PartnerAdListener
+import com.chartboost.heliumsdk.domain.PartnerAdLoadRequest
+import com.chartboost.heliumsdk.domain.PartnerAdapter
+import com.chartboost.heliumsdk.domain.PartnerConfiguration
+import com.chartboost.heliumsdk.domain.PreBidRequest
 import com.chartboost.heliumsdk.utils.LogController
 import com.chartboost.heliumsdk.utils.PartnerLogController
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.BIDDER_INFO_FETCH_FAILED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.BIDDER_INFO_FETCH_STARTED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.BIDDER_INFO_FETCH_SUCCEEDED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.CCPA_CONSENT_DENIED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.CCPA_CONSENT_GRANTED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.COPPA_NOT_SUBJECT
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.COPPA_SUBJECT
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.CUSTOM
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_CLICK
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_DISMISS
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_EXPIRE
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_REWARD
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_TRACK_IMPRESSION
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.GDPR_APPLICABLE
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.GDPR_CONSENT_DENIED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.GDPR_CONSENT_GRANTED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.GDPR_CONSENT_UNKNOWN
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.GDPR_NOT_APPLICABLE
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.GDPR_UNKNOWN
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.INVALIDATE_STARTED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.INVALIDATE_SUCCEEDED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.LOAD_FAILED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.LOAD_STARTED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.LOAD_SUCCEEDED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.SETUP_FAILED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.SETUP_STARTED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.SETUP_SUCCEEDED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.SHOW_FAILED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.SHOW_STARTED
+import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.SHOW_SUCCEEDED
 import com.chartboost.mediation.referenceadapter.BuildConfig
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceBanner
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd
@@ -85,9 +123,15 @@ class ReferenceAdapter : PartnerAdapter {
     ): Result<Unit> {
         PartnerLogController.log(SETUP_STARTED)
 
-        // For simplicity, the reference adapter always assumes successes.
-        ReferenceSdk.initialize()
-        return Result.success(PartnerLogController.log(SETUP_SUCCEEDED))
+        return ReferenceSdk.initialize(context).fold(
+            onSuccess = {
+                Result.success(PartnerLogController.log(SETUP_SUCCEEDED))
+            },
+            onFailure = {
+                PartnerLogController.log(SETUP_FAILED)
+                Result.failure(it)
+            }
+        )
     }
 
     /**
@@ -113,13 +157,13 @@ class ReferenceAdapter : PartnerAdapter {
 
         return when (request.format) {
             AdFormat.BANNER -> {
-                Result.success(loadBannerAd(context, request))
+                loadBannerAd(context, request)
             }
 
             // For simplicity, this example uses a unified API for both interstitial and rewarded
             // ads. Your implementations may differ.
             AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
-                Result.success(loadFullscreenAd(context, request))
+                loadFullscreenAd(context, request)
             }
 
             else -> {
@@ -166,9 +210,11 @@ class ReferenceAdapter : PartnerAdapter {
                 PartnerLogController.log(SHOW_SUCCEEDED)
                 Result.success(partnerAd)
             }
+
             AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
                 showFullscreenAd(partnerAd)
             }
+
             else -> {
                 PartnerLogController.log(SHOW_FAILED)
                 Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
@@ -270,14 +316,14 @@ class ReferenceAdapter : PartnerAdapter {
     private fun loadBannerAd(
         context: Context,
         request: PartnerAdLoadRequest
-    ): PartnerAd {
+    ): Result<PartnerAd> {
         val listener = listeners[request.identifier]
         val ad = ReferenceBanner(
             context, request.partnerPlacement,
             chartboostMediationToReferenceBannerSize(request.size)
         )
 
-        ad.load(
+        return ad.load(
             request.adm,
             onAdImpression = {
                 PartnerLogController.log(LOAD_SUCCEEDED)
@@ -289,9 +335,15 @@ class ReferenceAdapter : PartnerAdapter {
                 listener?.onPartnerAdClicked(createPartnerAd(ad, request))
                     ?: LogController.d("Unable to notify partner ad click. Listener is null.")
             }
+        ).fold(
+            onSuccess = {
+                Result.success(createPartnerAd(ad, request))
+            },
+            onFailure = {
+                PartnerLogController.log(LOAD_FAILED)
+                Result.failure(it)
+            }
         )
-
-        return createPartnerAd(ad, request)
     }
 
     /**
@@ -337,7 +389,7 @@ class ReferenceAdapter : PartnerAdapter {
     private fun loadFullscreenAd(
         context: Context,
         request: PartnerAdLoadRequest,
-    ): PartnerAd {
+    ): Result<PartnerAd> {
         val ad =
             ReferenceFullscreenAd(
                 context, request.partnerPlacement, if (request.format == AdFormat.REWARDED) {
@@ -346,10 +398,17 @@ class ReferenceAdapter : PartnerAdapter {
                     INTERSTITIAL
                 }
             )
-        ad.load(request.adm)
 
-        PartnerLogController.log(LOAD_SUCCEEDED)
-        return createPartnerAd(ad, request)
+        return ad.load(request.adm).fold(
+            onSuccess = {
+                PartnerLogController.log(LOAD_SUCCEEDED)
+                Result.success(createPartnerAd(ad, request))
+            },
+            onFailure = {
+                PartnerLogController.log(LOAD_FAILED)
+                Result.failure(it)
+            }
+        )
     }
 
     /**
@@ -381,7 +440,13 @@ class ReferenceAdapter : PartnerAdapter {
                         },
                         onFullScreenAdShowFailed = {
                             PartnerLogController.log(SHOW_FAILED, it)
-                            continuation.resume(Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN)))
+                            continuation.resume(
+                                Result.failure(
+                                    ChartboostMediationAdException(
+                                        ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN
+                                    )
+                                )
+                            )
                         },
                         onFullScreenAdDismissed = {
                             listener?.let {
