@@ -7,7 +7,6 @@
 
 package com.chartboost.mediation.referenceadapter.sdk
 
-import android.content.Context
 import kotlinx.coroutines.delay
 import java.util.UUID
 
@@ -20,20 +19,14 @@ class ReferenceSdk {
     companion object {
         const val REFERENCE_SDK_VERSION = "1.0.0"
 
-        lateinit var settings: ReferenceSettings
-
         /**
          * Simulate a partner SDK initialization that does nothing and completes after 500 ms.
          * Do NOT copy.
          *
-         * @param context The current [Context].
-         *
          * @return Result.success(Unit) if initialization succeeds, Result.failure(Exception) otherwise.
          */
-        suspend fun initialize(context: Context): Result<Unit> {
-            settings = ReferenceSettings.getInstance(context)
-
-            return if (settings.initializationShouldSucceed) {
+        suspend fun initialize(): Result<Unit> {
+            return if (ReferenceSettings.initializationShouldSucceed) {
                 delay(500L)
                 Result.success(Unit)
             } else {
@@ -48,7 +41,7 @@ class ReferenceSdk {
          * @return A bid token if the token fetch succeeds, an empty string otherwise.
          */
         fun getBidToken(): String {
-            return if (settings.tokenFetchShouldSucceed) {
+            return if (ReferenceSettings.tokenFetchShouldSucceed) {
                 UUID.randomUUID().toString()
             } else {
                 ""

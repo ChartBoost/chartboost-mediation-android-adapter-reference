@@ -52,7 +52,7 @@ class ReferenceFullscreenAd(
      * See [ReferenceFullscreenActivity] for more information.
      */
     fun load(adm: String?): Result<Unit> {
-        return if (!ReferenceSdk.settings.adLoadShouldSucceed) {
+        return if (!ReferenceSettings.adLoadShouldSucceed) {
             Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNKNOWN))
         } else {
             Result.success(
@@ -73,7 +73,7 @@ class ReferenceFullscreenAd(
         onFullScreenAdDismissed: () -> Unit,
         onFullScreenAdExpired: () -> Unit
     ) {
-        if (!ReferenceSdk.settings.adShowShouldSucceed) {
+        if (!ReferenceSettings.adShowShouldSucceed) {
             onFullScreenAdShowFailed("Ad show failed")
             return
         }

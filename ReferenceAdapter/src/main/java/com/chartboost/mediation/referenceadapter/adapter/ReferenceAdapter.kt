@@ -85,7 +85,7 @@ class ReferenceAdapter : PartnerAdapter {
     ): Result<Unit> {
         PartnerLogController.log(SETUP_STARTED)
 
-        return ReferenceSdk.initialize(context).fold(
+        return ReferenceSdk.initialize().fold(
             onSuccess = {
                 Result.success(PartnerLogController.log(SETUP_SUCCEEDED))
             },
