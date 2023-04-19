@@ -3,6 +3,9 @@
 Note the first digit of every adapter version corresponds to the major version of the Chartboost Mediation SDK compatible with that adapter. 
 Adapters are compatible with any Chartboost Mediation SDK version within that major version.
 
+### 4.1.0.0.3
+- Added rewarded interstitial support.
+
 ### 4.1.0.0.2
 - Added settings to configure which specific ad lifecycle events should succeed or fail for testing purposes.
 
