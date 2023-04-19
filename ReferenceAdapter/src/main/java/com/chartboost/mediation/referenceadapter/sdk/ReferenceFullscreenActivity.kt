@@ -15,7 +15,6 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
@@ -23,7 +22,7 @@ import android.view.ViewConfiguration
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.Button
-import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.VideoView
 import androidx.appcompat.app.AlertDialog
@@ -84,7 +83,6 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
     private var adShowTracked = false
     private var remainingTimeMillis = rewardedInterstitialPlaybackDuration
 
-    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -135,7 +133,8 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
          * clicks through (videoView is null). Now that the user is back, skip the ad Activity.
          */
         if (adType == ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED && videoView == null) {
-            cleanUp().also { finish() }
+            cleanUp()
+            finish()
         }
     }
 
@@ -148,7 +147,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
     /**
      * Create and show an interstitial ad.
      */
-    @SuppressLint("ClickableViewAccessibility", "SetTextI18n")
+    @SuppressLint("ClickableViewAccessibility")
     private fun showInterstitialAd(url: String) {
         webView = findViewById<View>(R.id.reference_fullscreen_webview) as? WebView
             ?: run {
@@ -180,17 +179,10 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
 
             if (adType == ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED_INTERSTITIAL) {
                 val timerView = binding.referenceFullscreenTimerview
-                val closeButton =
-                    binding.referenceFullscreenClosebutton.also { it.visibility = View.VISIBLE }
-                val params = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    gravity = Gravity.TOP or Gravity.END
-                    setMargins(0, 0, 10, 0)
-                }
-
+                val closeButton = binding.referenceFullscreenClosebutton
                 var timer: CountDownTimer? = null
+
+                (timerView.parent as? LinearLayout).also { it?.visibility = View.VISIBLE }
 
                 closeButton.setOnClickListener {
                     timer?.cancel()
@@ -208,8 +200,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                                     millisInFuture = remainingTimeMillis,
                                     closeButton = closeButton,
                                     timerView = timerView
-                                )
-                                timer?.start()
+                                ).also { it.start() }
                             }
                             .create().show()
                     }
@@ -219,8 +210,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                     millisInFuture = rewardedInterstitialPlaybackDuration,
                     closeButton = closeButton,
                     timerView = timerView
-                )
-                timer?.start()
+                ).also { it.start() }
             }
 
             onAdShown()
@@ -286,7 +276,6 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
      * Create and show a rewarded interstitial ad. For simplicity, this implementation reuses the
      * interstitial ad show logic but add rewarding capabilities. Your implementation may differ.
      */
-    @SuppressLint("ClickableViewAccessibility")
     private fun showRewardedInterstitialAd(url: String) {
         showInterstitialAd(url)
     }
@@ -305,10 +294,12 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         timerView: TextView
     ): CountDownTimer {
         return object : CountDownTimer(millisInFuture, 1000) {
-            @SuppressLint("SetTextI18n")
             override fun onTick(millisUntilFinished: Long) {
                 remainingTimeMillis = millisUntilFinished
-                timerView.text = "Rewarding in ${millisUntilFinished / 1000}"
+                timerView.text = getString(
+                    R.string.reward_interstitial_timer_text,
+                    millisUntilFinished / 1000
+                )
 
                 if (remainingTimeMillis < 1000) {
                     closeButton.visibility = View.GONE

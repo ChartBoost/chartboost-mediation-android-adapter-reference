@@ -33,7 +33,8 @@
         android:layout_alignParentEnd="true"
         android:background="@android:color/black"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="invisible">
 
         <Button
             android:id="@+id/reference_fullscreen_closebutton"
@@ -42,8 +43,7 @@
             android:layout_margin="10dp"
             android:text="x"
             android:textColor="@android:color/white"
-            android:textSize="20sp"
-            android:visibility="invisible" />
+            android:textSize="20sp" />
 
         <TextView
             android:id="@+id/reference_fullscreen_timerview"
