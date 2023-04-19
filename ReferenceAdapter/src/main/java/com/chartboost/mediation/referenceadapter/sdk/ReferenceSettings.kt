@@ -10,7 +10,7 @@ package com.chartboost.mediation.referenceadapter.sdk
 import android.content.Context
 
 object ReferenceSettings {
-    lateinit var appContext: Context
+    var appContext: Context? = null
 
     private const val REFERENCE_ADAPTER_SETTINGS = "REFERENCE_ADAPTER_SETTINGS"
     private const val REFERENCE_ADAPTER_INIT_STATUS = "REFERENCE_ADAPTER_INIT_STATUS"
@@ -41,12 +41,12 @@ object ReferenceSettings {
         set(value) = applySetting(REFERENCE_ADAPTER_AD_INVALIDATE_STATUS, value)
 
     private fun getSetting(key: String, defaultValue: Boolean): Boolean {
-        return appContext.getSharedPreferences(REFERENCE_ADAPTER_SETTINGS, Context.MODE_PRIVATE)
+        return appContext?.getSharedPreferences(REFERENCE_ADAPTER_SETTINGS, Context.MODE_PRIVATE)
             ?.getBoolean(key, defaultValue) ?: defaultValue
     }
 
     private fun applySetting(key: String, value: Boolean) {
-        appContext.getSharedPreferences(REFERENCE_ADAPTER_SETTINGS, Context.MODE_PRIVATE)
+        appContext?.getSharedPreferences(REFERENCE_ADAPTER_SETTINGS, Context.MODE_PRIVATE)
             ?.edit()
             ?.putBoolean(key, value)
             ?.apply()

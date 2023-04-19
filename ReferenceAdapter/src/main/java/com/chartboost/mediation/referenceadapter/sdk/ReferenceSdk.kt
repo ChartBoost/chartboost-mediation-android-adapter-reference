@@ -26,8 +26,9 @@ class ReferenceSdk {
          * @return Result.success(Unit) if initialization succeeds, Result.failure(Exception) otherwise.
          */
         suspend fun initialize(): Result<Unit> {
+            delay(500L)
+
             return if (ReferenceSettings.initializationShouldSucceed) {
-                delay(500L)
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Initialization failed"))
