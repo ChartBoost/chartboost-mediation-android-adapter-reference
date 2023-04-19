@@ -85,9 +85,15 @@ class ReferenceAdapter : PartnerAdapter {
     ): Result<Unit> {
         PartnerLogController.log(SETUP_STARTED)
 
-        // For simplicity, the reference adapter always assumes successes.
-        ReferenceSdk.initialize()
-        return Result.success(PartnerLogController.log(SETUP_SUCCEEDED))
+        return ReferenceSdk.initialize().fold(
+            onSuccess = {
+                Result.success(PartnerLogController.log(SETUP_SUCCEEDED))
+            },
+            onFailure = {
+                PartnerLogController.log(SETUP_FAILED)
+                Result.failure(it)
+            }
+        )
     }
 
     /**
@@ -113,13 +119,13 @@ class ReferenceAdapter : PartnerAdapter {
 
         return when (request.format) {
             AdFormat.BANNER -> {
-                Result.success(loadBannerAd(context, request))
+                loadBannerAd(context, request)
             }
 
             // For simplicity, this example uses a unified API for both interstitial and rewarded
             // ads. Your implementations may differ.
             AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
-                Result.success(loadFullscreenAd(context, request))
+                loadFullscreenAd(context, request)
             }
 
             else -> {
@@ -166,9 +172,11 @@ class ReferenceAdapter : PartnerAdapter {
                 PartnerLogController.log(SHOW_SUCCEEDED)
                 Result.success(partnerAd)
             }
+
             AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
                 showFullscreenAd(partnerAd)
             }
+
             else -> {
                 PartnerLogController.log(SHOW_FAILED)
                 Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
@@ -270,14 +278,14 @@ class ReferenceAdapter : PartnerAdapter {
     private fun loadBannerAd(
         context: Context,
         request: PartnerAdLoadRequest
-    ): PartnerAd {
+    ): Result<PartnerAd> {
         val listener = listeners[request.identifier]
         val ad = ReferenceBanner(
             context, request.partnerPlacement,
             chartboostMediationToReferenceBannerSize(request.size)
         )
 
-        ad.load(
+        return ad.load(
             request.adm,
             onAdImpression = {
                 PartnerLogController.log(LOAD_SUCCEEDED)
@@ -289,9 +297,15 @@ class ReferenceAdapter : PartnerAdapter {
                 listener?.onPartnerAdClicked(createPartnerAd(ad, request))
                     ?: LogController.d("Unable to notify partner ad click. Listener is null.")
             }
+        ).fold(
+            onSuccess = {
+                Result.success(createPartnerAd(ad, request))
+            },
+            onFailure = {
+                PartnerLogController.log(LOAD_FAILED)
+                Result.failure(it)
+            }
         )
-
-        return createPartnerAd(ad, request)
     }
 
     /**
@@ -337,7 +351,7 @@ class ReferenceAdapter : PartnerAdapter {
     private fun loadFullscreenAd(
         context: Context,
         request: PartnerAdLoadRequest,
-    ): PartnerAd {
+    ): Result<PartnerAd> {
         val ad =
             ReferenceFullscreenAd(
                 context, request.partnerPlacement, if (request.format == AdFormat.REWARDED) {
@@ -346,10 +360,17 @@ class ReferenceAdapter : PartnerAdapter {
                     INTERSTITIAL
                 }
             )
-        ad.load(request.adm)
 
-        PartnerLogController.log(LOAD_SUCCEEDED)
-        return createPartnerAd(ad, request)
+        return ad.load(request.adm).fold(
+            onSuccess = {
+                PartnerLogController.log(LOAD_SUCCEEDED)
+                Result.success(createPartnerAd(ad, request))
+            },
+            onFailure = {
+                PartnerLogController.log(LOAD_FAILED)
+                Result.failure(it)
+            }
+        )
     }
 
     /**
@@ -381,7 +402,13 @@ class ReferenceAdapter : PartnerAdapter {
                         },
                         onFullScreenAdShowFailed = {
                             PartnerLogController.log(SHOW_FAILED, it)
-                            continuation.resume(Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN)))
+                            continuation.resume(
+                                Result.failure(
+                                    ChartboostMediationAdException(
+                                        ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN
+                                    )
+                                )
+                            )
                         },
                         onFullScreenAdDismissed = {
                             listener?.let {

@@ -11,6 +11,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
+import com.chartboost.heliumsdk.domain.ChartboostMediationAdException
+import com.chartboost.heliumsdk.domain.ChartboostMediationError
 import com.chartboost.heliumsdk.utils.PartnerLogController
 import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -49,12 +51,18 @@ class ReferenceFullscreenAd(
      *
      * See [ReferenceFullscreenActivity] for more information.
      */
-    fun load(adm: String?) {
-        PartnerLogController.log(
-            CUSTOM,
-            "Loading reference $adFormat ad for ad unit ID $adUnitId " +
-                    "with ad markup $adm"
-        )
+    fun load(adm: String?): Result<Unit> {
+        return if (!ReferenceSettings.adLoadShouldSucceed) {
+            Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNKNOWN))
+        } else {
+            Result.success(
+                PartnerLogController.log(
+                    CUSTOM,
+                    "Loading reference $adFormat ad for ad unit ID $adUnitId " +
+                            "with ad markup $adm"
+                )
+            )
+        }
     }
 
     fun show(
@@ -65,6 +73,11 @@ class ReferenceFullscreenAd(
         onFullScreenAdDismissed: () -> Unit,
         onFullScreenAdExpired: () -> Unit
     ) {
+        if (!ReferenceSettings.adShowShouldSucceed) {
+            onFullScreenAdShowFailed("Ad show failed")
+            return
+        }
+
         // Launch a new Activity where the fullscreen ad will be displayed.
         CoroutineScope(Main).launch(CoroutineExceptionHandler { _, _ ->
             onFullScreenAdExpired()

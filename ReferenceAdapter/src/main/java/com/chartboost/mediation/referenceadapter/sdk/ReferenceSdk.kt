@@ -8,7 +8,7 @@
 package com.chartboost.mediation.referenceadapter.sdk
 
 import kotlinx.coroutines.delay
-import java.util.*
+import java.util.UUID
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -22,17 +22,31 @@ class ReferenceSdk {
         /**
          * Simulate a partner SDK initialization that does nothing and completes after 500 ms.
          * Do NOT copy.
+         *
+         * @return Result.success(Unit) if initialization succeeds, Result.failure(Exception) otherwise.
          */
-        suspend fun initialize() {
+        suspend fun initialize(): Result<Unit> {
             delay(500L)
+
+            return if (ReferenceSettings.initializationShouldSucceed) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Initialization failed"))
+            }
         }
 
         /**
          * Simulate a partner SDK computation of a bid token.
          * Using the random UUID as an example. Do NOT copy.
+         *
+         * @return A bid token if the token fetch succeeds, an empty string otherwise.
          */
         fun getBidToken(): String {
-            return UUID.randomUUID().toString()
+            return if (ReferenceSettings.tokenFetchShouldSucceed) {
+                UUID.randomUUID().toString()
+            } else {
+                ""
+            }
         }
     }
 }

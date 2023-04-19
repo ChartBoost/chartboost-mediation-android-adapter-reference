@@ -16,6 +16,8 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.webkit.WebView
 import android.widget.LinearLayout
+import com.chartboost.heliumsdk.domain.ChartboostMediationAdException
+import com.chartboost.heliumsdk.domain.ChartboostMediationError
 import com.chartboost.heliumsdk.utils.PartnerLogController
 import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.CUSTOM
 
@@ -54,37 +56,42 @@ class ReferenceBanner(
         adm: String?,
         onAdImpression: () -> Unit,
         onAdClicked: () -> Unit,
-    ) {
-        PartnerLogController.log(
-            CUSTOM,
-            "Loading reference banner for ad unit ID $adUnitId with ad markup $adm" +
-                    "and size ${size.width}x${size.height}"
-        )
+    ): Result<Unit> {
+        return if (!ReferenceSettings.adLoadShouldSucceed) {
+            Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNKNOWN))
+        } else {
+            PartnerLogController.log(
+                CUSTOM,
+                "Loading reference banner for ad unit ID $adUnitId with ad markup $adm" +
+                        "and size ${size.width}x${size.height}"
+            )
 
-        layoutParams = LinearLayout.LayoutParams(size.width, size.height)
-        loadUrl(size.resUrl)
+            layoutParams = LinearLayout.LayoutParams(size.width, size.height)
+            loadUrl(size.resUrl)
 
-        setOnTouchListener(object : OnTouchListener {
-            var startTime: Long = 0
+            setOnTouchListener(object : OnTouchListener {
+                var startTime: Long = 0
 
-            override fun onTouch(v: View?, event: MotionEvent): Boolean {
-                if (event.action == MotionEvent.ACTION_DOWN) {
-                    startTime = System.currentTimeMillis()
-                }
-
-                if (event.action == MotionEvent.ACTION_UP) {
-                    // Trivial way to rule out other touch events (e.g. swiping)
-                    if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
-                        clickthrough()
-                        onAdClicked()
+                override fun onTouch(v: View?, event: MotionEvent): Boolean {
+                    if (event.action == MotionEvent.ACTION_DOWN) {
+                        startTime = System.currentTimeMillis()
                     }
+
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        // Trivial way to rule out other touch events (e.g. swiping)
+                        if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
+                            clickthrough()
+                            onAdClicked()
+                        }
+                    }
+
+                    return true
                 }
+            })
 
-                return true
-            }
-        })
-
-        onAdImpression()
+            onAdImpression()
+            Result.success(Unit)
+        }
     }
 
     private fun clickthrough() {
