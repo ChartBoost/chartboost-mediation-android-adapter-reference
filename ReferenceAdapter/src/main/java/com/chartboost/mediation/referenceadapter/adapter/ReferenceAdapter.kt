@@ -84,9 +84,15 @@ class ReferenceAdapter : PartnerAdapter {
     ): Result<Unit> {
         PartnerLogController.log(SETUP_STARTED)
 
-        // For simplicity, the reference adapter always assumes successes.
-        ReferenceSdk.initialize()
-        return Result.success(PartnerLogController.log(SETUP_SUCCEEDED))
+        return ReferenceSdk.initialize().fold(
+            onSuccess = {
+                Result.success(PartnerLogController.log(SETUP_SUCCEEDED))
+            },
+            onFailure = {
+                PartnerLogController.log(SETUP_FAILED)
+                Result.failure(it)
+            }
+        )
     }
 
     /**
@@ -112,7 +118,7 @@ class ReferenceAdapter : PartnerAdapter {
 
         return when (request.format) {
             AdFormat.BANNER -> {
-                Result.success(loadBannerAd(context, request))
+                loadBannerAd(context, request)
             }
             AdFormat.INTERSTITIAL, AdFormat.REWARDED -> loadFullscreenAd(context, request)
             else -> {
@@ -163,9 +169,11 @@ class ReferenceAdapter : PartnerAdapter {
                 PartnerLogController.log(SHOW_SUCCEEDED)
                 Result.success(partnerAd)
             }
+
             AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
                 showFullscreenAd(partnerAd)
             }
+
             else -> {
                 if (partnerAd.request.format.key == "rewarded_interstitial") {
                     showFullscreenAd(partnerAd)
@@ -271,14 +279,14 @@ class ReferenceAdapter : PartnerAdapter {
     private fun loadBannerAd(
         context: Context,
         request: PartnerAdLoadRequest
-    ): PartnerAd {
+    ): Result<PartnerAd> {
         val listener = listeners[request.identifier]
         val ad = ReferenceBanner(
             context, request.partnerPlacement,
             chartboostMediationToReferenceBannerSize(request.size)
         )
 
-        ad.load(
+        return ad.load(
             request.adm,
             onAdImpression = {
                 PartnerLogController.log(LOAD_SUCCEEDED)
@@ -290,9 +298,15 @@ class ReferenceAdapter : PartnerAdapter {
                 listener?.onPartnerAdClicked(createPartnerAd(ad, request))
                     ?: LogController.d("Unable to notify partner ad click. Listener is null.")
             }
+        ).fold(
+            onSuccess = {
+                Result.success(createPartnerAd(ad, request))
+            },
+            onFailure = {
+                PartnerLogController.log(LOAD_FAILED)
+                Result.failure(it)
+            }
         )
-
-        return createPartnerAd(ad, request)
     }
 
     /**
@@ -356,10 +370,17 @@ class ReferenceAdapter : PartnerAdapter {
                 }
             }
         )
-        ad.load(request.adm)
 
-        PartnerLogController.log(LOAD_SUCCEEDED)
-        return Result.success(createPartnerAd(ad, request))
+        return ad.load(request.adm).fold(
+            onSuccess = {
+                PartnerLogController.log(LOAD_SUCCEEDED)
+                Result.success(createPartnerAd(ad, request))
+            },
+            onFailure = {
+                PartnerLogController.log(LOAD_FAILED)
+                Result.failure(it)
+            }
+        )
     }
 
     /**

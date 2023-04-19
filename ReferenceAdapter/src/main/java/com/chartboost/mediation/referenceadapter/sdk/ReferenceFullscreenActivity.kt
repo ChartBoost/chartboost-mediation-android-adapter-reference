@@ -111,12 +111,15 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED -> {
                 showRewardedAd(adUrl)
             }
+
             ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL -> {
                 showInterstitialAd(adUrl)
             }
+
             ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED_INTERSTITIAL -> {
                 showRewardedInterstitialAd(adUrl)
             }
+
             else -> {
                 onAdShowFailed("Invalid fullscreen ad type provided")
                 finish()
@@ -177,7 +180,8 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
 
             if (adType == ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED_INTERSTITIAL) {
                 val timerView = binding.referenceFullscreenTimerview
-                val closeButton = binding.referenceFullscreenClosebutton
+                val closeButton =
+                    binding.referenceFullscreenClosebutton.also { it.visibility = View.VISIBLE }
                 val params = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT

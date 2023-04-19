@@ -42,7 +42,8 @@
             android:layout_margin="10dp"
             android:text="x"
             android:textColor="@android:color/white"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:visibility="invisible" />
 
         <TextView
             android:id="@+id/reference_fullscreen_timerview"
