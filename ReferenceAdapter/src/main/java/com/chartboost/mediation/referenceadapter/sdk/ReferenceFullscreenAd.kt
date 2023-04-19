@@ -33,7 +33,8 @@ class ReferenceFullscreenAd(
 ) : AppCompatActivity() {
     enum class ReferenceFullscreenAdFormat(val resUrl: String) {
         INTERSTITIAL("https://chartboost.s3.amazonaws.com/helium/creatives/creative-320x480.png"),
-        REWARDED("https://chartboost.s3.amazonaws.com/helium/creatives/cbvideoad-portrait.mp4")
+        REWARDED("https://chartboost.s3.amazonaws.com/helium/creatives/cbvideoad-portrait.mp4"),
+        REWARDED_INTERSTITIAL("https://chartboost.s3.amazonaws.com/helium/creatives/creative-320x480.png")
     }
 
     companion object {
@@ -42,7 +43,7 @@ class ReferenceFullscreenAd(
          * [ReferenceFullscreenActivity].
          */
         const val FULLSCREEN_AD_URL = "reference_fullscreen_ad_url"
-        const val IS_REWARDED_KEY = "reference_fullscreen_is_rewarded"
+        const val FULLSCREEN_AD_TYPE = "reference_fullscreen_ad_type"
     }
 
     /**
@@ -96,7 +97,7 @@ class ReferenceFullscreenAd(
 
             context.startActivity(Intent(context, ReferenceFullscreenActivity::class.java).apply {
                 putExtra(FULLSCREEN_AD_URL, adFormat.resUrl)
-                putExtra(IS_REWARDED_KEY, adFormat == ReferenceFullscreenAdFormat.REWARDED)
+                putExtra(FULLSCREEN_AD_TYPE, adFormat.name)
             })
         }
     }

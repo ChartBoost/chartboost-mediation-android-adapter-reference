@@ -16,8 +16,7 @@ import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.
 import com.chartboost.mediation.referenceadapter.BuildConfig
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceBanner
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd
-import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
-import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.*
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceSdk
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -121,16 +120,14 @@ class ReferenceAdapter : PartnerAdapter {
             AdFormat.BANNER -> {
                 loadBannerAd(context, request)
             }
-
-            // For simplicity, this example uses a unified API for both interstitial and rewarded
-            // ads. Your implementations may differ.
-            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
-                loadFullscreenAd(context, request)
-            }
-
+            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> loadFullscreenAd(context, request)
             else -> {
-                PartnerLogController.log(LOAD_FAILED)
-                Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT))
+                if (request.format.key == "rewarded_interstitial") {
+                    loadFullscreenAd(context, request)
+                } else {
+                    PartnerLogController.log(LOAD_FAILED)
+                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT))
+                }
             }
         }
     }
@@ -178,8 +175,12 @@ class ReferenceAdapter : PartnerAdapter {
             }
 
             else -> {
-                PartnerLogController.log(SHOW_FAILED)
-                Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
+                if (partnerAd.request.format.key == "rewarded_interstitial") {
+                    showFullscreenAd(partnerAd)
+                } else {
+                    PartnerLogController.log(SHOW_FAILED)
+                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
+                }
             }
         }
     }
@@ -341,7 +342,6 @@ class ReferenceAdapter : PartnerAdapter {
 
     /**
      * Ask the reference SDK to load a fullscreen ad.
-     * This method will randomly decide the ad format (interstitial or rewarded).
      *
      * @param context The current Context.
      * @param request The relevant data associated with the current ad load call.
@@ -352,14 +352,24 @@ class ReferenceAdapter : PartnerAdapter {
         context: Context,
         request: PartnerAdLoadRequest,
     ): Result<PartnerAd> {
-        val ad =
-            ReferenceFullscreenAd(
-                context, request.partnerPlacement, if (request.format == AdFormat.REWARDED) {
-                    REWARDED
-                } else {
-                    INTERSTITIAL
+        val ad = ReferenceFullscreenAd(
+            context = context,
+            adUnitId = request.partnerPlacement,
+            adFormat = when (request.format) {
+                AdFormat.INTERSTITIAL -> INTERSTITIAL
+                AdFormat.REWARDED -> REWARDED
+                else -> {
+                    if (request.format.key == "rewarded_interstitial") {
+                        REWARDED_INTERSTITIAL
+                    } else {
+                        PartnerLogController.log(LOAD_FAILED)
+                        return Result.failure(
+                            ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT)
+                        )
+                    }
                 }
-            )
+            }
+        )
 
         return ad.load(request.adm).fold(
             onSuccess = {
@@ -421,7 +431,7 @@ class ReferenceAdapter : PartnerAdapter {
                                 )
                             }
                         },
-                        onFullScreenAdRewarded = { amount, label ->
+                        onFullScreenAdRewarded = { _, _ ->
                             listener?.let {
                                 PartnerLogController.log(DID_REWARD)
                                 it.onPartnerAdRewarded(partnerAd)

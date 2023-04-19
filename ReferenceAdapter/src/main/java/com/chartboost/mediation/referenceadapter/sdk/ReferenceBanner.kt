@@ -51,7 +51,6 @@ class ReferenceBanner(
 
     private var clickThroughUrl = "https://www.chartboost.com/mediate/"
 
-    @SuppressLint("ClickableViewAccessibility")
     fun load(
         adm: String?,
         onAdImpression: () -> Unit,
@@ -81,6 +80,7 @@ class ReferenceBanner(
                         // Trivial way to rule out other touch events (e.g. swiping)
                         if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
                             clickthrough()
+                            v?.performClick()
                             onAdClicked()
                         }
                     }
