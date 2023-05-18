@@ -420,10 +420,10 @@ class ReferenceAdapter : PartnerAdapter {
                                 )
                             )
                         },
-                        onFullScreenAdDismissed = {
+                        onFullScreenAdDismissed = { exception ->
                             listener?.let {
-                                PartnerLogController.log(DID_DISMISS)
-                                it.onPartnerAdDismissed(partnerAd, null)
+                                PartnerLogController.log(DID_DISMISS, exception?.message ?: "")
+                                it.onPartnerAdDismissed(partnerAd, exception)
                             } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,

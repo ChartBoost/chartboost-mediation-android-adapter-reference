@@ -71,7 +71,7 @@ class ReferenceFullscreenAd(
         onFullScreenAdShowFailed: (String) -> Unit,
         onFullScreenAdClicked: () -> Unit,
         onFullScreenAdRewarded: (Int, String) -> Unit,
-        onFullScreenAdDismissed: () -> Unit,
+        onFullScreenAdDismissed: (ChartboostMediationAdException?) -> Unit,
         onFullScreenAdExpired: () -> Unit
     ) {
         if (!ReferenceSettings.adShowShouldSucceed) {
@@ -91,8 +91,8 @@ class ReferenceFullscreenAd(
                 onFullScreenAdClicked()
             }, rewarded = { amount, currency ->
                 onFullScreenAdRewarded(amount, currency)
-            }, dismissed = {
-                onFullScreenAdDismissed()
+            }, dismissed = { exception ->
+                onFullScreenAdDismissed(exception)
             })
 
             context.startActivity(Intent(context, ReferenceFullscreenActivity::class.java).apply {

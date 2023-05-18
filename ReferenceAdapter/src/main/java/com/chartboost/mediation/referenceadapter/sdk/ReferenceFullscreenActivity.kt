@@ -27,6 +27,8 @@ import android.widget.TextView
 import android.widget.VideoView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.chartboost.heliumsdk.domain.ChartboostMediationAdException
+import com.chartboost.heliumsdk.domain.ChartboostMediationError
 import com.chartboost.mediation.referenceadapter.R
 import com.chartboost.mediation.referenceadapter.databinding.ActivityReferenceFullscreenBinding
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_TYPE
@@ -43,14 +45,14 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         private var onAdShowFailed: (String) -> Unit = {}
         private var onAdRewarded: (Int, String) -> Unit = { _, _ -> }
         private var onAdClicked: () -> Unit = {}
-        private var onAdDismissed: () -> Unit = {}
+        private var onAdDismissed: (ChartboostMediationAdException?) -> Unit = {}
 
         fun subscribe(
             shown: () -> Unit,
             showFailed: (String) -> Unit,
             rewarded: (Int, String) -> Unit,
             clicked: () -> Unit,
-            dismissed: () -> Unit
+            dismissed: (ChartboostMediationAdException?) -> Unit
         ) {
             onAdShown = {
                 shown()
@@ -64,8 +66,8 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             onAdClicked = {
                 clicked()
             }
-            onAdDismissed = {
-                dismissed()
+            onAdDismissed = { exception ->
+                dismissed(exception)
             }
         }
     }
@@ -192,7 +194,15 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                             .setTitle("Skip Ad")
                             .setMessage("Are you sure you want to skip this ad?")
                             .setPositiveButton("Yes") { _, _ ->
-                                onAdDismissed()
+                                if (ReferenceSettings.adCloseShouldSucceed) {
+                                    onAdDismissed(null)
+                                } else {
+                                    onAdDismissed(
+                                        ChartboostMediationAdException(
+                                            ChartboostMediationError.CM_INTERNAL_ERROR
+                                        )
+                                    )
+                                }
                                 finish()
                             }
                             .setNegativeButton("No") { _, _ ->
@@ -323,7 +333,11 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
         videoView = null
 
         if (!adDismissTracked) {
-            onAdDismissed()
+            if (ReferenceSettings.adCloseShouldSucceed) {
+                onAdDismissed(null)
+            } else {
+                onAdDismissed(ChartboostMediationAdException(ChartboostMediationError.CM_INTERNAL_ERROR))
+            }
             adDismissTracked = true
         }
     }

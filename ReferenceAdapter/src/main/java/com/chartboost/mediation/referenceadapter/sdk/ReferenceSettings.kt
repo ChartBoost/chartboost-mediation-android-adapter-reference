@@ -19,6 +19,7 @@ object ReferenceSettings {
     private const val REFERENCE_ADAPTER_AD_SHOW_STATUS = "REFERENCE_ADAPTER_AD_SHOW_STATUS"
     private const val REFERENCE_ADAPTER_AD_INVALIDATE_STATUS =
         "REFERENCE_ADAPTER_AD_INVALIDATE_STATUS"
+    private const val REFERENCE_ADAPTER_AD_CLOSE_STATUS = "REFERENCE_ADAPTER_AD_CLOSE_STATUS"
 
     var initializationShouldSucceed: Boolean
         get() = getSetting(REFERENCE_ADAPTER_INIT_STATUS, true)
@@ -39,6 +40,10 @@ object ReferenceSettings {
     var adInvalidateShouldSucceed: Boolean
         get() = getSetting(REFERENCE_ADAPTER_AD_INVALIDATE_STATUS, true)
         set(value) = applySetting(REFERENCE_ADAPTER_AD_INVALIDATE_STATUS, value)
+
+    var adCloseShouldSucceed: Boolean
+        get() = getSetting(REFERENCE_ADAPTER_AD_CLOSE_STATUS, true)
+        set(value) = applySetting(REFERENCE_ADAPTER_AD_CLOSE_STATUS, value)
 
     private fun getSetting(key: String, defaultValue: Boolean): Boolean {
         return appContext?.getSharedPreferences(REFERENCE_ADAPTER_SETTINGS, Context.MODE_PRIVATE)
