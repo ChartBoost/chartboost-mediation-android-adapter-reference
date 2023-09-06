@@ -358,7 +358,7 @@ Mediation SDK on Android.
     > This is sample code, don't use the code below for your own adapter. Please refer to the code in our actual adapters for real usage samples.
 
     ```kotlin
-    // Example in which a destiction is made for programmatic and mediation ad load request.
+    // Example in which a destiction is made for a programmatic or mediation ad load request.
     // Make the load distinction at load time.
         if (request.adm.isNullOrEmpty()) {
             // This is a mediation request. Pass the partner placement name to your sdk.
@@ -369,14 +369,14 @@ Mediation SDK on Android.
         }
     ```
 
-4. Determine if your SDK supports currently supported Chartboost Mediation ad formats:
+4. Determine if your SDK supports the currently supported Chartboost Mediation ad formats:
     - Banner
     - Interstitial
     - Rewarded
     - Rewarded Interstitial
 
         > [!IMPORTANT]
-        > To determine the ad format for Rewarded Interstitial, you will need to do the followin check:
+        > To determine the ad format for Rewarded Interstitial, you will need to do the following check:
         >
         > ```kotlin
         > request.format.key == "rewarded_interstitial"
@@ -433,7 +433,7 @@ Mediation SDK on Android.
     ```
 
 7. Depending on your SDK, if you have show callbacks that need to be mapped with Chartboost Mediation's callbacks at show time, you will need to save the `PartnerAdListener` listener you used at load time.
-    - It is recommended to map the `PartnerAdListener` listener with the appropriate load identifier to prevent listerners from being lost or being triggered wrongly. To get the request identifier, it can be found with `PartnerAdLoadRequest.identifier`
+    - It is recommended to map the `PartnerAdListener` listener with the appropriate load identifier to prevent listerners from being lost or being triggered wrongly. To get the request identifier, it can be found via `PartnerAdLoadRequest.identifier`
 
     > [!WARNING]
     > This is sample code, don't use the code below for your own adapter. Please refer to the code in our actual adapters for real usage samples.
@@ -466,7 +466,7 @@ Mediation SDK on Android.
         // ...
     }
 
-    // During show, get the listener and trigger where it needs to applied.
+    // During show, get the listener from the map and invoke it where it will be used.
     override suspend fun load(
         context: Context,
         request: PartnerAdLoadRequest,
@@ -486,6 +486,7 @@ Mediation SDK on Android.
          // ...
     }
 
+    // Once you have or done and destroyed an ad, remove the listener from the map.
     override suspend fun invalidate(partnerAd: PartnerAd): Result<PartnerAd> {
         // ...
         listeners.remove(partnerAd.request.identifier)
