@@ -316,7 +316,7 @@ Mediation SDK on Android.
 
 1. Ensure that your adapter follows a similar structure:
    - Adapter Class
-     - Companion Object:
+     - Companion Object
      - Private Values and Variables
      - Overridden Chartboost Mediation APIs
      - Private Functions
