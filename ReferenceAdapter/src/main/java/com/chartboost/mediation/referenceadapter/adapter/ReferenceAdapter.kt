@@ -348,7 +348,7 @@ class ReferenceAdapter : PartnerAdapter {
      *
      * @return The loaded [PartnerAd] ad.
      */
-    private fun loadFullscreenAd(
+    private suspend fun loadFullscreenAd(
         context: Context,
         request: PartnerAdLoadRequest,
     ): Result<PartnerAd> {
@@ -371,16 +371,18 @@ class ReferenceAdapter : PartnerAdapter {
             }
         )
 
-        return ad.load(request.adm).fold(
-            onSuccess = {
-                PartnerLogController.log(LOAD_SUCCEEDED)
-                Result.success(createPartnerAd(ad, request))
-            },
-            onFailure = {
-                PartnerLogController.log(LOAD_FAILED)
-                Result.failure(it)
+        return suspendCancellableCoroutine { continuation ->
+            fun resumeOnce(result: Result<PartnerAd>) {
+                if (continuation.isActive) {
+                    continuation.resume(result)
+                }
             }
-        )
+            ad.load(request.adm, onFullScreenAdLoaded = {
+                resumeOnce(Result.success(createPartnerAd(ad, request)))
+            }, onFullScreenAdLoadFailed = {
+                resumeOnce(Result.failure(it))
+            })
+        }
     }
 
     /**
@@ -398,6 +400,12 @@ class ReferenceAdapter : PartnerAdapter {
                 val listener = listeners[partnerAd.request.identifier]
 
                 return suspendCancellableCoroutine { continuation ->
+                    fun resumeOnce(result: Result<PartnerAd>) {
+                        if (continuation.isActive) {
+                            continuation.resume(result)
+                        }
+                    }
+
                     ad.show(
                         onFullScreenAdImpression = {
                             listener?.let {
@@ -408,11 +416,11 @@ class ReferenceAdapter : PartnerAdapter {
                                 "Unable to notify partner ad impression. Listener is null."
                             )
 
-                            continuation.resume(Result.success(partnerAd))
+                            resumeOnce(Result.success(partnerAd))
                         },
                         onFullScreenAdShowFailed = {
                             PartnerLogController.log(SHOW_FAILED, it)
-                            continuation.resume(
+                            resumeOnce(
                                 Result.failure(
                                     ChartboostMediationAdException(
                                         ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN
