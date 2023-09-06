@@ -116,6 +116,8 @@ Mediation SDK on Android.
                 GdprConsentStatus.GDPR_CONSENT_DENIED -> GDPR_CONSENT_DENIED
             }
         )
+
+        // Implement your SDK's GDPR methods here.
     }
     ```
 
@@ -139,6 +141,8 @@ Mediation SDK on Android.
             if (hasGrantedCcpaConsent) CCPA_CONSENT_GRANTED
             else CCPA_CONSENT_DENIED
         )
+
+        // Implement your SDK's CCPA consent methods here.
     }
     ```
 
@@ -157,6 +161,8 @@ Mediation SDK on Android.
             if (isSubjectToCoppa) COPPA_SUBJECT
             else COPPA_NOT_SUBJECT
         )
+        
+        // Implement your SDK's COPPA methods here.
     }
     ```
 
@@ -347,6 +353,9 @@ Mediation SDK on Android.
 
 3. Determine if your SDK will be integrated with Mediation, Programmatic Bidding, or both.
     - This will determine if you need to implement the `fetchBidderInformation` as well as passing the adm from the request returned. Otherwise, you simply just need to pass the placement to your SDK.
+
+    > [!WARNING]
+    > This is sample code, don't use the code below for your own adapter. Please refer to the code in our actual adapters for real usage samples.
 
     ```kotlin
     // Example in which a destiction is made for programmatic and mediation ad load request.
