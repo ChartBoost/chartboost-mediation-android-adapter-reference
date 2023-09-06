@@ -162,6 +162,7 @@ Mediation SDK on Android.
 
 9. Override `suspend fun setUp(context: Context, partnerConfiguration: PartnerConfiguration): Result<Unit>` to initialize the partner SDK and perform any necessary setup in order to request and serve ads.
     - If the operation succeeds, return `Result.success`. Otherwise, return `Result.failure(Exception)`.
+
     > [!NOTE]
     > This operation may time out as deemed necessary by the Chartboost Mediation SDK. However, the partner SDK’s initialization attempt will not be canceled and may continue until completion.
 
@@ -193,6 +194,7 @@ Mediation SDK on Android.
     ```
 
 10. Override `suspend fun fetchBidderInformation(context: Context, request: PreBidRequest): Map<String, String>` to compute and return a `Map<String, String>` of biddable token Strings. If network bidding is not supported by the current partner, return an empty `Map`.
+
     > [!NOTE]
     > This operation may time out as deemed necessary by the Chartboost Mediation SDK.
 
@@ -221,6 +223,7 @@ Mediation SDK on Android.
 11. Override `suspend fun load(context: Context, request: PartnerAdLoadRequest, partnerAdListener: PartnerAdListener): Result<PartnerAd>` to make an ad request.
     - `PartnerAd(val ad: Any?, val details: Map<String, String>, val request: PartnerAdLoadRequest)` is a data class that holds your partner’s ad object along with data relevant to the current ad request. You may populate and pass a `Map<String, String>` of data that you’d like to persist between calls.
     - If an ad is successfully loaded, return `Result.success(PartnerAd)`. Otherwise, return `Result.failure(Exception)`.
+
     > [!NOTE]
     > This operation may time out as deemed necessary by the Chartboost Mediation SDK.
 
@@ -247,6 +250,7 @@ Mediation SDK on Android.
 12. Override `suspend fun show(context: Context, partnerAd: PartnerAd): Result<PartnerAd>` to show the loaded ad, if one is available.
     - Since banner ads render upon load and do not have a separate “show” stage, you will only need to handle non-banner ads in this call.
     - If an ad is successfully shown, return `Result.success(PartnerAd)`. Otherwise, return `Result.failure(Exception)`.
+
     > [!NOTE]
     > This operation may time out as deemed necessary by the Chartboost Mediation SDK.
 
@@ -310,6 +314,7 @@ Mediation SDK on Android.
      - Private Values and Variables
      - Overridden Chartboost Mediation APIs
      - Private Functions
+
 2. Use the companion object to expose your public SDK APIs to publishers that are integrating your adapter.
     - Some usages include enabling/disabling test modes, logging, SDK settings, or other SDK methods you want to expose to publishers.
 
@@ -360,15 +365,20 @@ Mediation SDK on Android.
     - Interstitial
     - Rewarded
     - Rewarded Interstitial
+
         > [!IMPORTANT]
         > To determine the ad format for Rewarded Interstitial, you will need to do the followin check:
         >
         > ```kotlin
         > request.format.key == "rewarded_interstitial"
         >```
-        >
+
 5. Log your adapter with the `PartnerLogController` class and its appropriate `PartnerAdapterEvents` enums.
+
 6. When using suspendable coroutines, it is preferable to use the `CancellableCoroutine` class and provide a `continuation.isActive` check to prevent continuation crashes on multiple calls.
+
+    > [!WARNING]
+    > This is sample code, don't use the code below for your own adapter. Please refer to the code in our actual adapters for real usage samples.
 
     ```kotlin
     /**
@@ -476,6 +486,9 @@ Mediation SDK on Android.
 
 8. Map your SDK's error codes with Chartboost Mediation's in a separate function and as relevant as possible.
 
+    > [!WARNING]
+    > This is sample code, don't use the code below for your own adapter. Please refer to the code in our actual adapters for real usage samples.
+
     ```kotlin
     /**
      * Example usage from the Chartboost Monetization Adapter.
@@ -516,6 +529,9 @@ Mediation SDK on Android.
     ```
 
 9. Convert requested Chartboost Mediation banner sizes to those with your SDK banner sizes.
+
+    > [!WARNING]
+    > This is sample code, don't use the code below for your own adapter. Please refer to the code in our actual adapters for real usage samples.
 
     ```kotlin
     /**
