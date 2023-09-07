@@ -3,6 +3,9 @@
 Note the first digit of every adapter version corresponds to the major version of the Chartboost Mediation SDK compatible with that adapter. 
 Adapters are compatible with any Chartboost Mediation SDK version within that major version.
 
+### 4.1.0.1.1
+- Updated to handle recent AdFormat changes.
+
 ### 4.1.0.1.0
 - Added setting to resume continuation multiple times for load and/or show for testing purposes.
 

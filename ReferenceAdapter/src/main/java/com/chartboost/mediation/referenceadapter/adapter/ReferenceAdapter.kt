@@ -117,7 +117,7 @@ class ReferenceAdapter : PartnerAdapter {
         delay(1000L)
 
         return when (request.format) {
-            AdFormat.BANNER -> {
+            AdFormat.BANNER, AdFormat.ADAPTIVE_BANNER -> {
                 loadBannerAd(context, request)
             }
             AdFormat.INTERSTITIAL, AdFormat.REWARDED -> loadFullscreenAd(context, request)
@@ -164,7 +164,7 @@ class ReferenceAdapter : PartnerAdapter {
         PartnerLogController.log(SHOW_STARTED)
 
         return when (partnerAd.request.format) {
-            AdFormat.BANNER -> {
+            AdFormat.BANNER, AdFormat.ADAPTIVE_BANNER -> {
                 // Banners do not have a "show" mechanism.
                 PartnerLogController.log(SHOW_SUCCEEDED)
                 Result.success(partnerAd)
