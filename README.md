@@ -36,9 +36,6 @@ Mediation SDK on Android.
 2. Override `val partnerSdkVersion: String` with the version of the partner SDK.
 
     ```kotlin
-    /**
-     * Override this value to return the version of the partner SDK.
-     */
     override val partnerSdkVersion: String
         get() = ReferenceSdk.REFERENCE_SDK_VERSION
     ```
@@ -48,18 +45,6 @@ Mediation SDK on Android.
         - For example, if this adapter is compatible with Chartboost Mediation SDK 4.x and partner SDK 1.2.3.x (where x is optional), and this is its initial release, then adapterVersion is 4.1.2.3.x.0.
 
     ```kotlin
-    /**
-     * Override this value to return the version of the mediation adapter.
-     *
-     * You may version the adapter using any preferred convention, but it is recommended to apply the
-     * following format if the adapter will be published by Chartboost Mediation:
-     *
-     * Chartboost Mediation.Partner.Adapter
-     *
-     * "Chartboost Mediation" represents the Chartboost Mediation SDK’s major version that is compatible with this adapter. This must be 1 digit.
-     * "Partner" represents the partner SDK’s major.minor.patch.x (where x is optional) version that is compatible with this adapter. This can be 3-4 digits.
-     * "Adapter" represents this adapter’s version (starting with 0), which resets to 0 when the partner SDK’s version changes. This must be 1 digit.
-     */
     override val adapterVersion: String
         get() = BuildConfig.CHARTBOOST_MEDIATION_REFERENCE_ADAPTER_VERSION
     ```
@@ -67,9 +52,6 @@ Mediation SDK on Android.
 4. Override `val partnerId: String` with the internal identifier that the Chartboost Mediation SDK can use to refer to the current partner.
 
     ```kotlin
-    /**
-     * Override this value to return the name of the partner SDK.
-     */
     override val partnerId: String
         get() = "reference"
     ```
@@ -77,9 +59,6 @@ Mediation SDK on Android.
 5. Override `val partnerDisplayName: String` with the official/external name of the current partner.
 
     ```kotlin
-    /**
-     * Override this value to return the display name of the partner SDK.
-     */
     override val partnerDisplayName: String
         get() = "Reference"
     ```
@@ -87,14 +66,6 @@ Mediation SDK on Android.
 6. Override `fun setGdpr(context: Context, applies: Boolean?, gdprConsentStatus: GdprConsentStatus)` to notify the partner SDK of the GDPR applicability as needed and to notify the partner SDK of the GDPR consent status as needed.
 
     ```kotlin
-    /**
-     * Override this method to notify your partner SDK of GDPR applicability as determined by
-     * the Chartboost Mediation SDK.
-     *
-     * @param context The current [Context].
-     * @param applies True if GDPR applies, false otherwise.
-     * @param gdprConsentStatus The user's GDPR consent status.
-     */
     override fun setGdpr(
         context: Context,
         applies: Boolean?,
@@ -123,14 +94,6 @@ Mediation SDK on Android.
 7. Override `fun setCcpaConsent(context: Context, hasGrantedCcpaConsent: Boolean, privacyString: String)` to notify the partner SDK of the CCPA consent as needed.
 
     ```kotlin
-    /**
-     * Override this method to notify your partner SDK of the CCPA privacy String as supplied by
-     * the Chartboost Mediation SDK.
-     *
-     * @param context The current [Context].
-     * @param hasGrantedCcpaConsent True if the user has granted CCPA consent, false otherwise.
-     * @param privacyString The CCPA privacy String.
-     */
     override fun setCcpaConsent(
         context: Context,
         hasGrantedCcpaConsent: Boolean,
@@ -148,13 +111,6 @@ Mediation SDK on Android.
 8. Override `fun setUserSubjectToCoppa(context: Context, isSubjectToCoppa: Boolean)` to notify the partner SDK of whether the user is subject to COPPA as needed.
 
     ```kotlin
-    /**
-     * Override this method to notify your partner SDK of the COPPA subjectivity as determined by
-     * the Chartboost Mediation SDK.
-     *
-     * @param context The current [Context].
-     * @param isSubjectToCoppa True if the user is subject to COPPA, false otherwise.
-     */
     override fun setUserSubjectToCoppa(context: Context, isSubjectToCoppa: Boolean) {
         PartnerLogController.log(
             if (isSubjectToCoppa) COPPA_SUBJECT
@@ -172,14 +128,6 @@ Mediation SDK on Android.
     > This operation may time out as deemed necessary by the Chartboost Mediation SDK. However, the partner SDK’s initialization attempt will not be canceled and may continue until completion.
 
     ```kotlin
-    /**
-     * Override this method to initialize the partner SDK so that it's ready to request and display ads.
-     *
-     * @param context The current Context.
-     * @param partnerConfiguration The necessary initialization data provided by Chartboost Mediation.
-     *
-     * @return Result.success(Unit) if the initialization was successful, Result.failure(Exception) otherwise.
-     */
     override suspend fun setUp(
         context: Context,
         partnerConfiguration: PartnerConfiguration
@@ -204,14 +152,6 @@ Mediation SDK on Android.
     > This operation may time out as deemed necessary by the Chartboost Mediation SDK.
 
     ```kotlin
-    /**
-     * Override this method to compute and return a bid token for the bid request.
-     *
-     * @param context The current Context.
-     * @param request The necessary data associated with the current bid request.
-     *
-     * @return A Map<String, String> of a biddable token keyed by an identifier.
-     */
     override suspend fun fetchBidderInformation(
         context: Context,
         request: PreBidRequest
@@ -233,15 +173,6 @@ Mediation SDK on Android.
     > This operation may time out as deemed necessary by the Chartboost Mediation SDK.
 
     ```kotlin
-    /**
-     * Override this method to make an ad request to the partner SDK for the given ad format.
-     *
-     * @param context The current Context.
-     * @param request The relevant data associated with the current ad load call.
-     * @param partnerAdListener The listener to notify the Chartboost Mediation SDK of the partner ad events.
-     *
-     * @return Result.success(PartnerAd) if the request was successful, Result.failure(Exception) otherwise.
-     */
     override suspend fun load(
         context: Context,
         request: PartnerAdLoadRequest,
@@ -260,14 +191,6 @@ Mediation SDK on Android.
     > This operation may time out as deemed necessary by the Chartboost Mediation SDK.
 
     ```kotlin
-    /**
-     * Override this method to show the partner ad.
-     *
-     * @param context The current Context.
-     * @param partnerAd The partner ad to be shown.
-     *
-     * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(Exception) otherwise.
-     */
     override suspend fun show(context: Context, partnerAd: PartnerAd): Result<PartnerAd> {
         PartnerLogController.log(SHOW_STARTED)
         // Implement your SDK show calls here.
@@ -279,13 +202,6 @@ Mediation SDK on Android.
     - If the ad is successfully discarded, return `Result.success(PartnerAd)`. Otherwise, return `Result.failure(Exception)`.
 
     ```kotlin
-    /**
-     * Override this method to discard current ad objects and release resources.
-     *
-     * @param partnerAd The partner ad to be discarded.
-     *
-     * @return Result.success(PartnerAd) if the ad was successfully discarded, Result.failure(Exception) otherwise.
-     */
     override suspend fun invalidate(partnerAd: PartnerAd): Result<PartnerAd> {
         PartnerLogController.log(INVALIDATE_STARTED)
         // Implement your SDK destroy calls here.
@@ -357,7 +273,7 @@ Mediation SDK on Android.
     > This is sample code, don't use the code below for your own adapter. Please refer to the code in our actual adapters for real usage samples.
 
     ```kotlin
-    // Example in which a destiction is made for a programmatic or mediation ad load request.
+    // Example in which a distinction is made for a programmatic or mediation ad load request.
     // Make the load distinction at load time.
         if (request.adm.isNullOrEmpty()) {
             // This is a mediation request. Pass the partner placement name to your sdk.
@@ -432,7 +348,7 @@ Mediation SDK on Android.
     ```
 
 7. Depending on your SDK, if you have show callbacks that need to be mapped with Chartboost Mediation's callbacks at show time, you will need to save the `PartnerAdListener` listener you used at load time.
-    - It is recommended to map the `PartnerAdListener` listener with the appropriate load identifier to prevent listerners from being lost or being triggered wrongly. To get the request identifier, it can be found via `PartnerAdLoadRequest.identifier`
+    - It is recommended to map the `PartnerAdListener` listener with the appropriate load identifier to prevent listeners from being lost or being triggered wrongly. To get the request identifier, it can be found via `PartnerAdLoadRequest.identifier`
 
     > [!WARNING]
     > This is sample code, don't use the code below for your own adapter. Please refer to the code in our actual adapters for real usage samples.
@@ -501,12 +417,6 @@ Mediation SDK on Android.
     ```kotlin
     /**
      * Example usage from the Chartboost Monetization Adapter.
-
-     * Convert a given Chartboost error to a [ChartboostMediationError].
-     *
-     * @param error The Chartboost error to convert.
-     *
-     * @return The corresponding [ChartboostMediationError].
      */
     private fun getChartboostMediationError(error: CBError) = when (error) {
         is StartError -> {
