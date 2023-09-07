@@ -12,9 +12,8 @@ The Chartboost Mediation Reference adapter mediates the Reference SDK via the Ch
 ## Integration
 
 In your `build.gradle`, add the following entry:
-
 ```groovy
-    implementation "com.chartboost:chartboost-mediation-adapter-reference:4.1.0.0.4"
+    implementation "com.chartboost:chartboost-mediation-adapter-reference:4.1.0.1.0"
 ```
 
 ## Chartboost Mediation Custom Adapter Implementation Guidelines

@@ -18,6 +18,7 @@ import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -52,17 +53,30 @@ class ReferenceFullscreenAd(
      *
      * See [ReferenceFullscreenActivity] for more information.
      */
-    fun load(adm: String?): Result<Unit> {
-        return if (!ReferenceSettings.adLoadShouldSucceed) {
-            Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNKNOWN))
+    fun load(
+        adm: String?,
+        onFullScreenAdLoaded: () -> Unit,
+        onFullScreenAdLoadFailed: (ChartboostMediationAdException) -> Unit,
+    ) {
+        if (!ReferenceSettings.adLoadShouldSucceed) {
+            onFullScreenAdLoadFailed(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNKNOWN))
         } else {
-            Result.success(
-                PartnerLogController.log(
-                    CUSTOM,
-                    "Loading reference $adFormat ad for ad unit ID $adUnitId " +
-                            "with ad markup $adm"
-                )
+            PartnerLogController.log(
+                CUSTOM,
+                "Loading reference $adFormat ad for ad unit ID $adUnitId " +
+                        "with ad markup $adm"
             )
+
+            // Simulate multiple continuation resumes for testing purposes. This should not crash.
+            if (ReferenceSettings.adLoadContinuationShouldResumeMoreThanOnce) {
+                CoroutineScope(Main).launch {
+                    onFullScreenAdLoaded()
+                    delay(500L)
+                    onFullScreenAdLoaded()
+                }
+            } else {
+                onFullScreenAdLoaded()
+            }
         }
     }
 

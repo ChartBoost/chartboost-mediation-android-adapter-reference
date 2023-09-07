@@ -33,6 +33,10 @@ import com.chartboost.mediation.referenceadapter.R
 import com.chartboost.mediation.referenceadapter.databinding.ActivityReferenceFullscreenBinding
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_TYPE
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_URL
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
@@ -223,7 +227,16 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                 ).also { it.start() }
             }
 
-            onAdShown()
+            // Simulate multiple continuation resumes for testing purposes. This should not crash.
+            if (ReferenceSettings.adShowContinuationShouldResumeMoreThanOnce) {
+                CoroutineScope(Main).launch {
+                    onAdShown()
+                    delay(500L)
+                    onAdShown()
+                }
+            } else {
+                onAdShown()
+            }
         }
     }
 
