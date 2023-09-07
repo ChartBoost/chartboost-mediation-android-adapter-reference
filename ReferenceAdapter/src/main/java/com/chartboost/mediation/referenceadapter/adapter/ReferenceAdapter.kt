@@ -116,11 +116,11 @@ class ReferenceAdapter : PartnerAdapter {
 
         delay(1000L)
 
-        return when (request.format) {
-            AdFormat.BANNER, AdFormat.ADAPTIVE_BANNER -> {
+        return when (request.format.key) {
+            AdFormat.BANNER.key, "adaptive_banner" -> {
                 loadBannerAd(context, request)
             }
-            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> loadFullscreenAd(context, request)
+            AdFormat.INTERSTITIAL.key, AdFormat.REWARDED.key -> loadFullscreenAd(context, request)
             else -> {
                 if (request.format.key == "rewarded_interstitial") {
                     loadFullscreenAd(context, request)
@@ -163,14 +163,14 @@ class ReferenceAdapter : PartnerAdapter {
     override suspend fun show(context: Context, partnerAd: PartnerAd): Result<PartnerAd> {
         PartnerLogController.log(SHOW_STARTED)
 
-        return when (partnerAd.request.format) {
-            AdFormat.BANNER, AdFormat.ADAPTIVE_BANNER -> {
+        return when (partnerAd.request.format.key) {
+            AdFormat.BANNER.key, "adaptive_banner" -> {
                 // Banners do not have a "show" mechanism.
                 PartnerLogController.log(SHOW_SUCCEEDED)
                 Result.success(partnerAd)
             }
 
-            AdFormat.INTERSTITIAL, AdFormat.REWARDED -> {
+            AdFormat.INTERSTITIAL.key, AdFormat.REWARDED.key -> {
                 showFullscreenAd(partnerAd)
             }
 
@@ -355,9 +355,9 @@ class ReferenceAdapter : PartnerAdapter {
         val ad = ReferenceFullscreenAd(
             context = context,
             adUnitId = request.partnerPlacement,
-            adFormat = when (request.format) {
-                AdFormat.INTERSTITIAL -> INTERSTITIAL
-                AdFormat.REWARDED -> REWARDED
+            adFormat = when (request.format.key) {
+                AdFormat.INTERSTITIAL.key -> INTERSTITIAL
+                AdFormat.REWARDED.key -> REWARDED
                 else -> {
                     if (request.format.key == "rewarded_interstitial") {
                         REWARDED_INTERSTITIAL
