@@ -3,6 +3,9 @@
 Note the first digit of every adapter version corresponds to the major version of the Chartboost Mediation SDK compatible with that adapter. 
 Adapters are compatible with any Chartboost Mediation SDK version within that major version.
 
+### 4.1.0.1.2
+- Added setting to return oversized banner ads. 
+
 ### 4.1.0.1.1
 - Updated to handle recent AdFormat changes.
 

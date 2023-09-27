@@ -7,6 +7,7 @@
 
 package com.chartboost.mediation.referenceadapter.sdk
 
+import android.util.Size
 import kotlinx.coroutines.delay
 import java.util.UUID
 
@@ -46,6 +47,20 @@ class ReferenceSdk {
                 UUID.randomUUID().toString()
             } else {
                 ""
+            }
+        }
+
+        /**
+         * Simulate an oversized ad being returned for an adaptive banner placement.
+         * Do NOT copy.
+         *
+         * @return A size with dimensions larger than requested.
+         */
+        fun getOversizedAdSize(requestedSize: Size): Size {
+            return if (ReferenceSettings.adLoadShouldReturnOversizedAd) {
+                Size(requestedSize.width + 1, requestedSize.height + 1)
+            } else {
+                requestedSize
             }
         }
     }
