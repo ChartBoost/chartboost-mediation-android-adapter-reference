@@ -16,6 +16,7 @@ object ReferenceSettings {
     private const val REFERENCE_ADAPTER_INIT_STATUS = "REFERENCE_ADAPTER_INIT_STATUS"
     private const val REFERENCE_ADAPTER_TOKEN_FETCH_STATUS = "REFERENCE_ADAPTER_TOKEN_FETCH_STATUS"
     private const val REFERENCE_ADAPTER_AD_LOAD_STATUS = "REFERENCE_ADAPTER_AD_LOAD_STATUS"
+    private const val REFERENCE_ADAPTER_AD_LOAD_SHOULD_RETURN_OVERSIZED_AD = "REFERENCE_ADAPTER_AD_LOAD_SHOULD_RETURN_OVERSIZED_AD"
     private const val REFERENCE_ADAPTER_AD_SHOW_STATUS = "REFERENCE_ADAPTER_AD_SHOW_STATUS"
     private const val REFERENCE_ADAPTER_AD_INVALIDATE_STATUS = "REFERENCE_ADAPTER_AD_INVALIDATE_STATUS"
     private const val REFERENCE_ADAPTER_AD_CLOSE_STATUS = "REFERENCE_ADAPTER_AD_CLOSE_STATUS"
@@ -33,6 +34,10 @@ object ReferenceSettings {
     var adLoadShouldSucceed: Boolean
         get() = getSetting(REFERENCE_ADAPTER_AD_LOAD_STATUS, true)
         set(value) = applySetting(REFERENCE_ADAPTER_AD_LOAD_STATUS, value)
+
+    var adLoadShouldReturnOversizedAd: Boolean
+        get() = getSetting(REFERENCE_ADAPTER_AD_LOAD_SHOULD_RETURN_OVERSIZED_AD, true)
+        set(value) = applySetting(REFERENCE_ADAPTER_AD_LOAD_SHOULD_RETURN_OVERSIZED_AD, value)
 
     var adShowShouldSucceed: Boolean
         get() = getSetting(REFERENCE_ADAPTER_AD_SHOW_STATUS, true)

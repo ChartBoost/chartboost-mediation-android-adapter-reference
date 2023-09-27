@@ -506,6 +506,15 @@ class ReferenceAdapter : PartnerAdapter {
      * @return The [PartnerAd] instance for the current ad call.
      */
     private fun createPartnerAd(ad: Any, request: PartnerAdLoadRequest): PartnerAd {
-        return PartnerAd(ad, mapOf("foo" to "bar"), request)
+        val adSize = ReferenceSdk.getOversizedAdSize(request.size ?: Size(1, 1))
+        return PartnerAd(
+            ad,
+            mapOf(
+                "foo" to "bar",
+                "banner_width_dips" to "${adSize.width}",
+                "banner_height_dips" to "${adSize.height}"
+            ),
+            request
+        )
     }
 }
