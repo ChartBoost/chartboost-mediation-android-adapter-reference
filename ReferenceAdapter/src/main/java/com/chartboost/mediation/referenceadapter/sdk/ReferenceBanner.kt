@@ -1,6 +1,6 @@
 /*
  * Copyright 2022-2023 Chartboost, Inc.
- * 
+ *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file.
  */
@@ -29,24 +29,25 @@ import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.
 @SuppressLint("ViewConstructor")
 class ReferenceBanner(
     context: Context,
-    private val adUnitId: String, private val size: Size
+    private val adUnitId: String,
+    private val size: Size,
 ) : WebView(context) {
     enum class Size(val width: Int, val height: Int, val resUrl: String) {
         BANNER(
             320,
             50,
-            "https://chartboost.s3.amazonaws.com/helium/creatives/creative-320x50.png"
+            "https://chartboost.s3.amazonaws.com/helium/creatives/creative-320x50.png",
         ),
         MEDIUM_RECTANGLE(
             300,
             250,
-            "https://chartboost.s3.amazonaws.com/helium/creatives/creative-300x250.png"
+            "https://chartboost.s3.amazonaws.com/helium/creatives/creative-300x250.png",
         ),
         LEADERBOARD(
             728,
             90,
-            "https://chartboost.s3.amazonaws.com/helium/creatives/creative-728x90.png"
-        );
+            "https://chartboost.s3.amazonaws.com/helium/creatives/creative-728x90.png",
+        ),
     }
 
     private var clickThroughUrl = "https://www.chartboost.com/mediate/"
@@ -62,32 +63,37 @@ class ReferenceBanner(
             PartnerLogController.log(
                 CUSTOM,
                 "Loading reference banner for ad unit ID $adUnitId with ad markup $adm" +
-                        "and size ${size.width}x${size.height}"
+                    "and size ${size.width}x${size.height}",
             )
 
             layoutParams = LinearLayout.LayoutParams(size.width, size.height)
             loadUrl(size.resUrl)
 
-            setOnTouchListener(object : OnTouchListener {
-                var startTime: Long = 0
+            setOnTouchListener(
+                object : OnTouchListener {
+                    var startTime: Long = 0
 
-                override fun onTouch(v: View?, event: MotionEvent): Boolean {
-                    if (event.action == MotionEvent.ACTION_DOWN) {
-                        startTime = System.currentTimeMillis()
-                    }
-
-                    if (event.action == MotionEvent.ACTION_UP) {
-                        // Trivial way to rule out other touch events (e.g. swiping)
-                        if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
-                            clickthrough()
-                            v?.performClick()
-                            onAdClicked()
+                    override fun onTouch(
+                        v: View?,
+                        event: MotionEvent,
+                    ): Boolean {
+                        if (event.action == MotionEvent.ACTION_DOWN) {
+                            startTime = System.currentTimeMillis()
                         }
-                    }
 
-                    return true
-                }
-            })
+                        if (event.action == MotionEvent.ACTION_UP) {
+                            // Trivial way to rule out other touch events (e.g. swiping)
+                            if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
+                                clickthrough()
+                                v?.performClick()
+                                onAdClicked()
+                            }
+                        }
+
+                        return true
+                    }
+                },
+            )
 
             onAdImpression()
             Result.success(Unit)
@@ -95,8 +101,10 @@ class ReferenceBanner(
     }
 
     private fun clickthrough() {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(clickThroughUrl)).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        })
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse(clickThroughUrl)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
+        )
     }
 }

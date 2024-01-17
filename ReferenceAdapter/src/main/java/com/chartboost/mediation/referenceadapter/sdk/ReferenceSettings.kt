@@ -59,12 +59,18 @@ object ReferenceSettings {
         get() = getSetting(REFERENCE_ADAPTER_AD_SHOW_CONTINUATION_STATUS, false)
         set(value) = applySetting(REFERENCE_ADAPTER_AD_SHOW_CONTINUATION_STATUS, value)
 
-    private fun getSetting(key: String, defaultValue: Boolean): Boolean {
+    private fun getSetting(
+        key: String,
+        defaultValue: Boolean,
+    ): Boolean {
         return appContext?.getSharedPreferences(REFERENCE_ADAPTER_SETTINGS, Context.MODE_PRIVATE)
             ?.getBoolean(key, defaultValue) ?: defaultValue
     }
 
-    private fun applySetting(key: String, value: Boolean) {
+    private fun applySetting(
+        key: String,
+        value: Boolean,
+    ) {
         appContext?.getSharedPreferences(REFERENCE_ADAPTER_SETTINGS, Context.MODE_PRIVATE)
             ?.edit()
             ?.putBoolean(key, value)
