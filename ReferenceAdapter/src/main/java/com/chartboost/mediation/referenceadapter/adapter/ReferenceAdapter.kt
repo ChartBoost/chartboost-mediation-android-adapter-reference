@@ -1,6 +1,6 @@
 /*
  * Copyright 2022-2023 Chartboost, Inc.
- * 
+ *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file.
  */
@@ -80,7 +80,7 @@ class ReferenceAdapter : PartnerAdapter {
      */
     override suspend fun setUp(
         context: Context,
-        partnerConfiguration: PartnerConfiguration
+        partnerConfiguration: PartnerConfiguration,
     ): Result<Unit> {
         PartnerLogController.log(SETUP_STARTED)
 
@@ -91,7 +91,7 @@ class ReferenceAdapter : PartnerAdapter {
             onFailure = {
                 PartnerLogController.log(SETUP_FAILED)
                 Result.failure(it)
-            }
+            },
         )
     }
 
@@ -107,7 +107,7 @@ class ReferenceAdapter : PartnerAdapter {
     override suspend fun load(
         context: Context,
         request: PartnerAdLoadRequest,
-        partnerAdListener: PartnerAdListener
+        partnerAdListener: PartnerAdListener,
     ): Result<PartnerAd> {
         PartnerLogController.log(LOAD_STARTED)
 
@@ -160,7 +160,10 @@ class ReferenceAdapter : PartnerAdapter {
      *
      * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(Exception) otherwise.
      */
-    override suspend fun show(context: Context, partnerAd: PartnerAd): Result<PartnerAd> {
+    override suspend fun show(
+        context: Context,
+        partnerAd: PartnerAd,
+    ): Result<PartnerAd> {
         PartnerLogController.log(SHOW_STARTED)
 
         return when (partnerAd.request.format.key) {
@@ -195,7 +198,7 @@ class ReferenceAdapter : PartnerAdapter {
      */
     override suspend fun fetchBidderInformation(
         context: Context,
-        request: PreBidRequest
+        request: PreBidRequest,
     ): Map<String, String> {
         PartnerLogController.log(BIDDER_INFO_FETCH_STARTED)
 
@@ -216,14 +219,14 @@ class ReferenceAdapter : PartnerAdapter {
     override fun setGdpr(
         context: Context,
         applies: Boolean?,
-        gdprConsentStatus: GdprConsentStatus
+        gdprConsentStatus: GdprConsentStatus,
     ) {
         PartnerLogController.log(
             when (applies) {
                 true -> GDPR_APPLICABLE
                 false -> GDPR_NOT_APPLICABLE
                 else -> GDPR_UNKNOWN
-            }
+            },
         )
 
         PartnerLogController.log(
@@ -231,7 +234,7 @@ class ReferenceAdapter : PartnerAdapter {
                 GdprConsentStatus.GDPR_CONSENT_UNKNOWN -> GDPR_CONSENT_UNKNOWN
                 GdprConsentStatus.GDPR_CONSENT_GRANTED -> GDPR_CONSENT_GRANTED
                 GdprConsentStatus.GDPR_CONSENT_DENIED -> GDPR_CONSENT_DENIED
-            }
+            },
         )
     }
 
@@ -246,11 +249,14 @@ class ReferenceAdapter : PartnerAdapter {
     override fun setCcpaConsent(
         context: Context,
         hasGrantedCcpaConsent: Boolean,
-        privacyString: String
+        privacyString: String,
     ) {
         PartnerLogController.log(
-            if (hasGrantedCcpaConsent) CCPA_CONSENT_GRANTED
-            else CCPA_CONSENT_DENIED
+            if (hasGrantedCcpaConsent) {
+                CCPA_CONSENT_GRANTED
+            } else {
+                CCPA_CONSENT_DENIED
+            },
         )
     }
 
@@ -261,10 +267,16 @@ class ReferenceAdapter : PartnerAdapter {
      * @param context The current [Context].
      * @param isSubjectToCoppa True if the user is subject to COPPA, false otherwise.
      */
-    override fun setUserSubjectToCoppa(context: Context, isSubjectToCoppa: Boolean) {
+    override fun setUserSubjectToCoppa(
+        context: Context,
+        isSubjectToCoppa: Boolean,
+    ) {
         PartnerLogController.log(
-            if (isSubjectToCoppa) COPPA_SUBJECT
-            else COPPA_NOT_SUBJECT
+            if (isSubjectToCoppa) {
+                COPPA_SUBJECT
+            } else {
+                COPPA_NOT_SUBJECT
+            },
         )
     }
 
@@ -278,13 +290,15 @@ class ReferenceAdapter : PartnerAdapter {
      */
     private fun loadBannerAd(
         context: Context,
-        request: PartnerAdLoadRequest
+        request: PartnerAdLoadRequest,
     ): Result<PartnerAd> {
         val listener = listeners[request.identifier]
-        val ad = ReferenceBanner(
-            context, request.partnerPlacement,
-            chartboostMediationToReferenceBannerSize(request.size)
-        )
+        val ad =
+            ReferenceBanner(
+                context,
+                request.partnerPlacement,
+                chartboostMediationToReferenceBannerSize(request.size),
+            )
 
         return ad.load(
             request.adm,
@@ -297,7 +311,7 @@ class ReferenceAdapter : PartnerAdapter {
                 PartnerLogController.log(DID_CLICK)
                 listener?.onPartnerAdClicked(createPartnerAd(ad, request))
                     ?: LogController.d("Unable to notify partner ad click. Listener is null.")
-            }
+            },
         ).fold(
             onSuccess = {
                 Result.success(createPartnerAd(ad, request))
@@ -305,7 +319,7 @@ class ReferenceAdapter : PartnerAdapter {
             onFailure = {
                 PartnerLogController.log(LOAD_FAILED)
                 Result.failure(it)
-            }
+            },
         )
     }
 
@@ -352,24 +366,26 @@ class ReferenceAdapter : PartnerAdapter {
         context: Context,
         request: PartnerAdLoadRequest,
     ): Result<PartnerAd> {
-        val ad = ReferenceFullscreenAd(
-            context = context,
-            adUnitId = request.partnerPlacement,
-            adFormat = when (request.format.key) {
-                AdFormat.INTERSTITIAL.key -> INTERSTITIAL
-                AdFormat.REWARDED.key -> REWARDED
-                else -> {
-                    if (request.format.key == "rewarded_interstitial") {
-                        REWARDED_INTERSTITIAL
-                    } else {
-                        PartnerLogController.log(LOAD_FAILED)
-                        return Result.failure(
-                            ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT)
-                        )
-                    }
-                }
-            }
-        )
+        val ad =
+            ReferenceFullscreenAd(
+                context = context,
+                adUnitId = request.partnerPlacement,
+                adFormat =
+                    when (request.format.key) {
+                        AdFormat.INTERSTITIAL.key -> INTERSTITIAL
+                        AdFormat.REWARDED.key -> REWARDED
+                        else -> {
+                            if (request.format.key == "rewarded_interstitial") {
+                                REWARDED_INTERSTITIAL
+                            } else {
+                                PartnerLogController.log(LOAD_FAILED)
+                                return Result.failure(
+                                    ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT),
+                                )
+                            }
+                        }
+                    },
+            )
 
         return suspendCancellableCoroutine { continuation ->
             fun resumeOnce(result: Result<PartnerAd>) {
@@ -392,9 +408,7 @@ class ReferenceAdapter : PartnerAdapter {
      *
      * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(Exception) otherwise.
      */
-    private suspend fun showFullscreenAd(
-        partnerAd: PartnerAd
-    ): Result<PartnerAd> {
+    private suspend fun showFullscreenAd(partnerAd: PartnerAd): Result<PartnerAd> {
         partnerAd.ad?.let { ad ->
             if (ad is ReferenceFullscreenAd) {
                 val listener = listeners[partnerAd.request.identifier]
@@ -413,7 +427,7 @@ class ReferenceAdapter : PartnerAdapter {
                                 it.onPartnerAdImpression(partnerAd)
                             } ?: PartnerLogController.log(
                                 CUSTOM,
-                                "Unable to notify partner ad impression. Listener is null."
+                                "Unable to notify partner ad impression. Listener is null.",
                             )
 
                             resumeOnce(Result.success(partnerAd))
@@ -423,9 +437,9 @@ class ReferenceAdapter : PartnerAdapter {
                             resumeOnce(
                                 Result.failure(
                                     ChartboostMediationAdException(
-                                        ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN
-                                    )
-                                )
+                                        ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN,
+                                    ),
+                                ),
                             )
                         },
                         onFullScreenAdDismissed = { exception ->
@@ -435,7 +449,7 @@ class ReferenceAdapter : PartnerAdapter {
                             } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,
-                                    "Unable to notify partner ad dismissal. Listener is null."
+                                    "Unable to notify partner ad dismissal. Listener is null.",
                                 )
                             }
                         },
@@ -446,7 +460,7 @@ class ReferenceAdapter : PartnerAdapter {
                             } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,
-                                    "Unable to notify partner ad reward. Listener is null."
+                                    "Unable to notify partner ad reward. Listener is null.",
                                 )
                             }
                         },
@@ -457,7 +471,7 @@ class ReferenceAdapter : PartnerAdapter {
                             } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,
-                                    "Unable to notify partner ad click. Listener is null."
+                                    "Unable to notify partner ad click. Listener is null.",
                                 )
                             }
                         },
@@ -468,10 +482,10 @@ class ReferenceAdapter : PartnerAdapter {
                             } ?: run {
                                 PartnerLogController.log(
                                     CUSTOM,
-                                    "Unable to notify partner ad expiration. Listener is null."
+                                    "Unable to notify partner ad expiration. Listener is null.",
                                 )
                             }
-                        }
+                        },
                     )
                 }
             } else {
@@ -505,16 +519,19 @@ class ReferenceAdapter : PartnerAdapter {
      *
      * @return The [PartnerAd] instance for the current ad call.
      */
-    private fun createPartnerAd(ad: Any, request: PartnerAdLoadRequest): PartnerAd {
+    private fun createPartnerAd(
+        ad: Any,
+        request: PartnerAdLoadRequest,
+    ): PartnerAd {
         val adSize = ReferenceSdk.getOversizedAdSize(request.size ?: Size(1, 1))
         return PartnerAd(
             ad,
             mapOf(
                 "foo" to "bar",
                 "banner_width_dips" to "${adSize.width}",
-                "banner_height_dips" to "${adSize.height}"
+                "banner_height_dips" to "${adSize.height}",
             ),
-            request
+            request,
         )
     }
 }

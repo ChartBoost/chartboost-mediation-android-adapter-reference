@@ -1,6 +1,6 @@
 /*
  * Copyright 2022-2023 Chartboost, Inc.
- * 
+ *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file.
  */
@@ -30,12 +30,12 @@ import kotlinx.coroutines.launch
 class ReferenceFullscreenAd(
     private val context: Context,
     private val adUnitId: String,
-    private val adFormat: ReferenceFullscreenAdFormat
+    private val adFormat: ReferenceFullscreenAdFormat,
 ) : AppCompatActivity() {
     enum class ReferenceFullscreenAdFormat(val resUrl: String) {
         INTERSTITIAL("https://chartboost.s3.amazonaws.com/helium/creatives/creative-320x480.png"),
         REWARDED("https://chartboost.s3.amazonaws.com/helium/creatives/cbvideoad-portrait.mp4"),
-        REWARDED_INTERSTITIAL("https://chartboost.s3.amazonaws.com/helium/creatives/creative-320x480.png")
+        REWARDED_INTERSTITIAL("https://chartboost.s3.amazonaws.com/helium/creatives/creative-320x480.png"),
     }
 
     companion object {
@@ -64,7 +64,7 @@ class ReferenceFullscreenAd(
             PartnerLogController.log(
                 CUSTOM,
                 "Loading reference $adFormat ad for ad unit ID $adUnitId " +
-                        "with ad markup $adm"
+                    "with ad markup $adm",
             )
 
             // Simulate multiple continuation resumes for testing purposes. This should not crash.
@@ -86,7 +86,7 @@ class ReferenceFullscreenAd(
         onFullScreenAdClicked: () -> Unit,
         onFullScreenAdRewarded: (Int, String) -> Unit,
         onFullScreenAdDismissed: (ChartboostMediationAdException?) -> Unit,
-        onFullScreenAdExpired: () -> Unit
+        onFullScreenAdExpired: () -> Unit,
     ) {
         if (!ReferenceSettings.adShowShouldSucceed) {
             onFullScreenAdShowFailed("Ad show failed")
@@ -94,9 +94,11 @@ class ReferenceFullscreenAd(
         }
 
         // Launch a new Activity where the fullscreen ad will be displayed.
-        CoroutineScope(Main).launch(CoroutineExceptionHandler { _, _ ->
-            onFullScreenAdExpired()
-        }) {
+        CoroutineScope(Main).launch(
+            CoroutineExceptionHandler { _, _ ->
+                onFullScreenAdExpired()
+            },
+        ) {
             ReferenceFullscreenActivity.subscribe(shown = {
                 onFullScreenAdImpression()
             }, showFailed = {
@@ -109,10 +111,12 @@ class ReferenceFullscreenAd(
                 onFullScreenAdDismissed(exception)
             })
 
-            context.startActivity(Intent(context, ReferenceFullscreenActivity::class.java).apply {
-                putExtra(FULLSCREEN_AD_URL, adFormat.resUrl)
-                putExtra(FULLSCREEN_AD_TYPE, adFormat.name)
-            })
+            context.startActivity(
+                Intent(context, ReferenceFullscreenActivity::class.java).apply {
+                    putExtra(FULLSCREEN_AD_URL, adFormat.resUrl)
+                    putExtra(FULLSCREEN_AD_TYPE, adFormat.name)
+                },
+            )
         }
     }
 
@@ -125,7 +129,7 @@ class ReferenceFullscreenAd(
     fun destroy() {
         PartnerLogController.log(
             CUSTOM,
-            "Destroying reference $adFormat ad for ad unit ID $adUnitId"
+            "Destroying reference $adFormat ad for ad unit ID $adUnitId",
         )
     }
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright 2022-2023 Chartboost, Inc.
- * 
+ *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file.
  */
@@ -56,7 +56,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             showFailed: (String) -> Unit,
             rewarded: (Int, String) -> Unit,
             clicked: () -> Unit,
-            dismissed: (ChartboostMediationAdException?) -> Unit
+            dismissed: (ChartboostMediationAdException?) -> Unit,
         ) {
             onAdShown = {
                 shown()
@@ -105,11 +105,12 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             return
         }
 
-        val adUrl = intent.getStringExtra(FULLSCREEN_AD_URL) ?: run {
-            onAdShowFailed("No creative URL provided")
-            finish()
-            return
-        }
+        val adUrl =
+            intent.getStringExtra(FULLSCREEN_AD_URL) ?: run {
+                onAdShowFailed("No creative URL provided")
+                finish()
+                return
+            }
 
         when (adType) {
             ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED -> {
@@ -165,23 +166,28 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             this.visibility = View.VISIBLE
             this.webChromeClient = WebChromeClient()
             this.loadUrl(url)
-            this.setOnTouchListener(object : OnTouchListener {
-                var startTime: Long = 0
+            this.setOnTouchListener(
+                object : OnTouchListener {
+                    var startTime: Long = 0
 
-                override fun onTouch(view: View, event: MotionEvent): Boolean {
-                    if (event.action == MotionEvent.ACTION_DOWN) {
-                        startTime = System.currentTimeMillis()
-                    }
-
-                    if (event.action == MotionEvent.ACTION_UP) {
-                        // Trivial way to rule out other touch events (e.g. swiping)
-                        if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
-                            clickthrough()
+                    override fun onTouch(
+                        view: View,
+                        event: MotionEvent,
+                    ): Boolean {
+                        if (event.action == MotionEvent.ACTION_DOWN) {
+                            startTime = System.currentTimeMillis()
                         }
+
+                        if (event.action == MotionEvent.ACTION_UP) {
+                            // Trivial way to rule out other touch events (e.g. swiping)
+                            if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
+                                clickthrough()
+                            }
+                        }
+                        return true
                     }
-                    return true
-                }
-            })
+                },
+            )
 
             if (adType == ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED_INTERSTITIAL) {
                 val timerView = binding.referenceFullscreenTimerview
@@ -203,28 +209,30 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                                 } else {
                                     onAdDismissed(
                                         ChartboostMediationAdException(
-                                            ChartboostMediationError.CM_INTERNAL_ERROR
-                                        )
+                                            ChartboostMediationError.CM_INTERNAL_ERROR,
+                                        ),
                                     )
                                 }
                                 finish()
                             }
                             .setNegativeButton("No") { _, _ ->
-                                timer = createCountdownTimer(
-                                    millisInFuture = remainingTimeMillis,
-                                    closeButton = closeButton,
-                                    timerView = timerView
-                                ).also { it.start() }
+                                timer =
+                                    createCountdownTimer(
+                                        millisInFuture = remainingTimeMillis,
+                                        closeButton = closeButton,
+                                        timerView = timerView,
+                                    ).also { it.start() }
                             }
                             .create().show()
                     }
                 }
 
-                timer = createCountdownTimer(
-                    millisInFuture = rewardedInterstitialPlaybackDuration,
-                    closeButton = closeButton,
-                    timerView = timerView
-                ).also { it.start() }
+                timer =
+                    createCountdownTimer(
+                        millisInFuture = rewardedInterstitialPlaybackDuration,
+                        closeButton = closeButton,
+                        timerView = timerView,
+                    ).also { it.start() }
             }
 
             // Simulate multiple continuation resumes for testing purposes. This should not crash.
@@ -255,43 +263,50 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             this.visibility = View.VISIBLE
             this.setVideoPath(url)
             this.start()
-            this.setOnTouchListener(object : OnTouchListener {
-                var startTime: Long = 0
+            this.setOnTouchListener(
+                object : OnTouchListener {
+                    var startTime: Long = 0
 
-                override fun onTouch(view: View, event: MotionEvent): Boolean {
-                    if (event.action == MotionEvent.ACTION_DOWN) {
-                        startTime = System.currentTimeMillis()
-                    }
-
-                    if (event.action == MotionEvent.ACTION_UP) {
-                        // Trivial way to rule out other touch events (e.g. swiping)
-                        if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
-                            // Deliberately terminate ad playback upon clickthrough.
-                            // As such, when the user comes back from the landing page, they will also be exiting the ad experience.
-                            clickthrough()
-                            cleanUp()
+                    override fun onTouch(
+                        view: View,
+                        event: MotionEvent,
+                    ): Boolean {
+                        if (event.action == MotionEvent.ACTION_DOWN) {
+                            startTime = System.currentTimeMillis()
                         }
-                    }
-                    return true
-                }
-            })
 
-            videoPlaybackHandler?.post(object : Runnable {
-                override fun run() {
-                    if (isPlaying && !adShowTracked) {
-                        onAdShown()
-                        adShowTracked = true
+                        if (event.action == MotionEvent.ACTION_UP) {
+                            // Trivial way to rule out other touch events (e.g. swiping)
+                            if (System.currentTimeMillis() - startTime < ViewConfiguration.getTapTimeout()) {
+                                // Deliberately terminate ad playback upon clickthrough.
+                                // As such, when the user comes back from the landing page, they will also be exiting the ad experience.
+                                clickthrough()
+                                cleanUp()
+                            }
+                        }
+                        return true
                     }
+                },
+            )
 
-                    if (!isPlaying && currentPosition > 0 && duration != -1) {
-                        videoPlaybackHandler?.removeCallbacksAndMessages(null)
-                        videoPlaybackHandler = null
-                        onAdRewarded(1, "coin")
+            videoPlaybackHandler?.post(
+                object : Runnable {
+                    override fun run() {
+                        if (isPlaying && !adShowTracked) {
+                            onAdShown()
+                            adShowTracked = true
+                        }
+
+                        if (!isPlaying && currentPosition > 0 && duration != -1) {
+                            videoPlaybackHandler?.removeCallbacksAndMessages(null)
+                            videoPlaybackHandler = null
+                            onAdRewarded(1, "coin")
+                        }
+
+                        videoPlaybackHandler?.postDelayed(this, 250)
                     }
-
-                    videoPlaybackHandler?.postDelayed(this, 250)
-                }
-            })
+                },
+            )
         }
     }
 
@@ -304,9 +319,11 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
     }
 
     private fun clickthrough() {
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(clickThroughUrl)).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        })
+        startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse(clickThroughUrl)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
+        )
 
         onAdClicked()
     }
@@ -314,15 +331,16 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
     private fun createCountdownTimer(
         millisInFuture: Long,
         closeButton: Button,
-        timerView: TextView
+        timerView: TextView,
     ): CountDownTimer {
         return object : CountDownTimer(millisInFuture, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 remainingTimeMillis = millisUntilFinished
-                timerView.text = getString(
-                    R.string.reward_interstitial_timer_text,
-                    millisUntilFinished / 1000
-                )
+                timerView.text =
+                    getString(
+                        R.string.reward_interstitial_timer_text,
+                        millisUntilFinished / 1000,
+                    )
 
                 if (remainingTimeMillis < 1000) {
                     closeButton.visibility = View.GONE
