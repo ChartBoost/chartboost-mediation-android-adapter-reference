@@ -1,6 +1,6 @@
 /*
  * Copyright 2023-2024 Chartboost, Inc.
- * 
+ *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file.
  */
@@ -9,10 +9,10 @@ package com.chartboost.mediation.referenceadapter.adapter
 
 import android.content.Context
 import android.util.Size
-import com.chartboost.heliumsdk.domain.*
-import com.chartboost.heliumsdk.utils.LogController
-import com.chartboost.heliumsdk.utils.PartnerLogController
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
+import com.chartboost.chartboostmediationsdk.domain.*
+import com.chartboost.chartboostmediationsdk.utils.LogController
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.*
 import com.chartboost.mediation.referenceadapter.BuildConfig
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceBanner
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd

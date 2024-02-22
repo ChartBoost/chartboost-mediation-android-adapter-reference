@@ -1,6 +1,6 @@
 /*
  * Copyright 2023-2024 Chartboost, Inc.
- * 
+ *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file.
  */
@@ -27,8 +27,8 @@ import android.widget.TextView
 import android.widget.VideoView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.chartboost.heliumsdk.domain.ChartboostMediationAdException
-import com.chartboost.heliumsdk.domain.ChartboostMediationError
+import com.chartboost.chartboostmediationsdk.domain.ChartboostMediationAdException
+import com.chartboost.chartboostmediationsdk.domain.ChartboostMediationError
 import com.chartboost.mediation.referenceadapter.R
 import com.chartboost.mediation.referenceadapter.databinding.ActivityReferenceFullscreenBinding
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.Companion.FULLSCREEN_AD_TYPE

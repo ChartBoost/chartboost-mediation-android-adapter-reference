@@ -1,6 +1,6 @@
 /*
  * Copyright 2023-2024 Chartboost, Inc.
- * 
+ *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file.
  */
@@ -16,10 +16,10 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.webkit.WebView
 import android.widget.LinearLayout
-import com.chartboost.heliumsdk.domain.ChartboostMediationAdException
-import com.chartboost.heliumsdk.domain.ChartboostMediationError
-import com.chartboost.heliumsdk.utils.PartnerLogController
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.CUSTOM
+import com.chartboost.chartboostmediationsdk.domain.ChartboostMediationAdException
+import com.chartboost.chartboostmediationsdk.domain.ChartboostMediationError
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.CUSTOM
 
 /**
  * INTERNAL. FOR DEMO AND TESTING PURPOSES ONLY. DO NOT USE DIRECTLY.
