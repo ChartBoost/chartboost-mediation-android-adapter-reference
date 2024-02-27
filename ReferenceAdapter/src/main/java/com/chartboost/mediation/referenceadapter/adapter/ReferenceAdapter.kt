@@ -7,6 +7,7 @@
 
 package com.chartboost.mediation.referenceadapter.adapter
 
+import android.app.Activity
 import android.content.Context
 import android.util.Size
 import com.chartboost.chartboostmediationsdk.domain.*
@@ -155,13 +156,13 @@ class ReferenceAdapter : PartnerAdapter {
     /**
      * Override this method to show the partner ad.
      *
-     * @param context The current Context.
+     * @param activity The current [Activity].
      * @param partnerAd The partner ad to be shown.
      *
      * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(Exception) otherwise.
      */
     override suspend fun show(
-        context: Context,
+        activity: Activity,
         partnerAd: PartnerAd,
     ): Result<PartnerAd> {
         PartnerLogController.log(SHOW_STARTED)
