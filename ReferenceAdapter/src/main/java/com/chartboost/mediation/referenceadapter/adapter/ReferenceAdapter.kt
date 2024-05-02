@@ -14,7 +14,6 @@ import com.chartboost.chartboostmediationsdk.domain.*
 import com.chartboost.chartboostmediationsdk.utils.LogController
 import com.chartboost.chartboostmediationsdk.utils.PartnerLogController
 import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.*
-import com.chartboost.mediation.referenceadapter.BuildConfig
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceBanner
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.*
@@ -34,42 +33,14 @@ import kotlin.coroutines.resume
  */
 class ReferenceAdapter : PartnerAdapter {
     /**
+     * The Reference adapter configuration.
+     */
+    override var configuration: PartnerAdapterConfiguration = ReferenceAdapterConfiguration
+
+    /**
      * A map of Chartboost Mediation's listeners for the corresponding load identifier.
      */
     private val listeners = mutableMapOf<String, PartnerAdListener>()
-
-    /**
-     * Override this value to return the version of the partner SDK.
-     */
-    override val partnerSdkVersion: String
-        get() = ReferenceSdk.REFERENCE_SDK_VERSION
-
-    /**
-     * Override this value to return the version of the mediation adapter.
-     *
-     * You may version the adapter using any preferred convention, but it is recommended to apply the
-     * following format if the adapter will be published by Chartboost Mediation:
-     *
-     * Chartboost Mediation.Partner.Adapter
-     *
-     * "Chartboost Mediation" represents the Chartboost Mediation SDK’s major version that is compatible with this adapter. This must be 1 digit.
-     * "Partner" represents the partner SDK’s major.minor.patch.x (where x is optional) version that is compatible with this adapter. This can be 3-4 digits.
-     * "Adapter" represents this adapter’s version (starting with 0), which resets to 0 when the partner SDK’s version changes. This must be 1 digit.
-     */
-    override val adapterVersion: String
-        get() = BuildConfig.CHARTBOOST_MEDIATION_REFERENCE_ADAPTER_VERSION
-
-    /**
-     * Override this value to return the name of the partner SDK.
-     */
-    override val partnerId: String
-        get() = "reference"
-
-    /**
-     * Override this value to return the display name of the partner SDK.
-     */
-    override val partnerDisplayName: String
-        get() = "Reference"
 
     /**
      * Override this method to initialize the partner SDK so that it's ready to request and display ads.
