@@ -209,7 +209,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
                                 } else {
                                     onAdDismissed(
                                         ChartboostMediationAdException(
-                                            ChartboostMediationError.CM_INTERNAL_ERROR,
+                                            ChartboostMediationError.OtherError.InternalError,
                                         ),
                                     )
                                 }
@@ -367,7 +367,7 @@ class ReferenceFullscreenActivity : AppCompatActivity() {
             if (ReferenceSettings.adCloseShouldSucceed) {
                 onAdDismissed(null)
             } else {
-                onAdDismissed(ChartboostMediationAdException(ChartboostMediationError.CM_INTERNAL_ERROR))
+                onAdDismissed(ChartboostMediationAdException(ChartboostMediationError.OtherError.InternalError))
             }
             adDismissTracked = true
         }

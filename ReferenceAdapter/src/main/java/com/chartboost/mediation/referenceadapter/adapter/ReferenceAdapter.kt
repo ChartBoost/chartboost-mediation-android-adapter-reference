@@ -98,7 +98,7 @@ class ReferenceAdapter : PartnerAdapter {
                     loadFullscreenAd(context, request)
                 } else {
                     PartnerLogController.log(LOAD_FAILED)
-                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT))
+                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.LoadError.UnsupportedAdFormat))
                 }
             }
         }
@@ -154,7 +154,7 @@ class ReferenceAdapter : PartnerAdapter {
                     showFullscreenAd(partnerAd)
                 } else {
                     PartnerLogController.log(SHOW_FAILED)
-                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
+                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.ShowError.UnsupportedAdFormat))
                 }
             }
         }
@@ -352,7 +352,7 @@ class ReferenceAdapter : PartnerAdapter {
                             } else {
                                 PartnerLogController.log(LOAD_FAILED)
                                 return Result.failure(
-                                    ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT),
+                                    ChartboostMediationAdException(ChartboostMediationError.LoadError.UnsupportedAdFormat),
                                 )
                             }
                         }
@@ -409,7 +409,7 @@ class ReferenceAdapter : PartnerAdapter {
                             resumeOnce(
                                 Result.failure(
                                     ChartboostMediationAdException(
-                                        ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN,
+                                        ChartboostMediationError.ShowError.Unknown,
                                     ),
                                 ),
                             )
@@ -462,11 +462,11 @@ class ReferenceAdapter : PartnerAdapter {
                 }
             } else {
                 PartnerLogController.log(SHOW_FAILED, "Ad is not a ReferenceFullscreenAd.")
-                return Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_WRONG_RESOURCE_TYPE))
+                return Result.failure(ChartboostMediationAdException(ChartboostMediationError.ShowError.WrongResourceType))
             }
         } ?: run {
             PartnerLogController.log(SHOW_FAILED, "Ad is null.")
-            return Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_AD_NOT_FOUND))
+            return Result.failure(ChartboostMediationAdException(ChartboostMediationError.ShowError.AdNotFound))
         }
     }
 
