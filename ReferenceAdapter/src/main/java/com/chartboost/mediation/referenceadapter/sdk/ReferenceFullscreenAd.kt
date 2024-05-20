@@ -59,7 +59,7 @@ class ReferenceFullscreenAd(
         onFullScreenAdLoadFailed: (ChartboostMediationAdException) -> Unit,
     ) {
         if (!ReferenceSettings.adLoadShouldSucceed) {
-            onFullScreenAdLoadFailed(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNKNOWN))
+            onFullScreenAdLoadFailed(ChartboostMediationAdException(ChartboostMediationError.LoadError.Unknown))
         } else {
             PartnerLogController.log(
                 CUSTOM,

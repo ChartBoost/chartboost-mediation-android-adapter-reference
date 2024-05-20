@@ -58,7 +58,7 @@ class ReferenceBanner(
         onAdClicked: () -> Unit,
     ): Result<Unit> {
         return if (!ReferenceSettings.adLoadShouldSucceed) {
-            Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNKNOWN))
+            Result.failure(ChartboostMediationAdException(ChartboostMediationError.LoadError.Unknown))
         } else {
             PartnerLogController.log(
                 CUSTOM,
