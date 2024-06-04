@@ -118,7 +118,11 @@ class ReferenceAdapter : PartnerAdapter {
             PartnerAdFormats.BANNER -> {
                 loadBannerAd(context, request)
             }
-            PartnerAdFormats.INTERSTITIAL, PartnerAdFormats.REWARDED, PartnerAdFormats.REWARDED_INTERSTITIAL -> loadFullscreenAd(context, request)
+            PartnerAdFormats.INTERSTITIAL, PartnerAdFormats.REWARDED, PartnerAdFormats.REWARDED_INTERSTITIAL ->
+                loadFullscreenAd(
+                    context,
+                    request,
+                )
             else -> {
                 PartnerLogController.log(LOAD_FAILED)
                 Result.failure(ChartboostMediationAdException(ChartboostMediationError.LoadError.UnsupportedAdFormat))
@@ -149,7 +153,7 @@ class ReferenceAdapter : PartnerAdapter {
     override fun setConsents(
         context: Context,
         consents: Map<ConsentKey, ConsentValue>,
-        modifiedKeys: Set<ConsentKey>
+        modifiedKeys: Set<ConsentKey>,
     ) {
         consents.forEach {
             PartnerLogController.log(
