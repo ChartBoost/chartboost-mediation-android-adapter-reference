@@ -10,6 +10,7 @@ package com.chartboost.mediation.referenceadapter.adapter
 import android.app.Activity
 import android.content.Context
 import android.util.Size
+import com.chartboost.chartboostmediationsdk.ad.ChartboostMediationBannerAdView.ChartboostMediationBannerSize.Companion.asSize
 import com.chartboost.chartboostmediationsdk.domain.*
 import com.chartboost.chartboostmediationsdk.utils.LogController
 import com.chartboost.chartboostmediationsdk.utils.PartnerLogController
@@ -247,7 +248,7 @@ class ReferenceAdapter : PartnerAdapter {
             ReferenceBanner(
                 context,
                 request.partnerPlacement,
-                chartboostMediationToReferenceBannerSize(request.bannerSize?.size),
+                chartboostMediationToReferenceBannerSize(request.bannerSize?.asSize()),
             )
 
         return ad.load(
@@ -470,7 +471,7 @@ class ReferenceAdapter : PartnerAdapter {
         ad: Any,
         request: PartnerAdLoadRequest,
     ): PartnerAd {
-        val adSize = ReferenceSdk.getOversizedAdSize(request.bannerSize?.size ?: Size(1, 1))
+        val adSize = ReferenceSdk.getOversizedAdSize(request.bannerSize?.asSize() ?: Size(1, 1))
         return PartnerAd(
             ad,
             mapOf(
