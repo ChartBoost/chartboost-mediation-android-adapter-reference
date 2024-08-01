@@ -1,22 +1,48 @@
 /*
  * Copyright 2023-2024 Chartboost, Inc.
- * 
+ *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file.
  */
 
 package com.chartboost.mediation.referenceadapter.adapter
 
+import android.app.Activity
 import android.content.Context
 import android.util.Size
-import com.chartboost.heliumsdk.domain.*
-import com.chartboost.heliumsdk.utils.LogController
-import com.chartboost.heliumsdk.utils.PartnerLogController
-import com.chartboost.heliumsdk.utils.PartnerLogController.PartnerAdapterEvents.*
-import com.chartboost.mediation.referenceadapter.BuildConfig
+import com.chartboost.chartboostmediationsdk.ad.ChartboostMediationBannerAdView.ChartboostMediationBannerSize.Companion.asSize
+import com.chartboost.chartboostmediationsdk.domain.*
+import com.chartboost.chartboostmediationsdk.utils.LogController
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.BIDDER_INFO_FETCH_FAILED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.BIDDER_INFO_FETCH_STARTED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.BIDDER_INFO_FETCH_SUCCEEDED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.CUSTOM
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_CLICK
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_DISMISS
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_EXPIRE
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_REWARD
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.DID_TRACK_IMPRESSION
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.INVALIDATE_STARTED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.INVALIDATE_SUCCEEDED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.LOAD_FAILED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.LOAD_STARTED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.LOAD_SUCCEEDED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.SETUP_FAILED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.SETUP_STARTED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.SETUP_SUCCEEDED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.SHOW_FAILED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.SHOW_STARTED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.SHOW_SUCCEEDED
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.USER_IS_NOT_UNDERAGE
+import com.chartboost.chartboostmediationsdk.utils.PartnerLogController.PartnerAdapterEvents.USER_IS_UNDERAGE
+import com.chartboost.core.consent.ConsentKey
+import com.chartboost.core.consent.ConsentValue
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceBanner
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd
-import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.*
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.INTERSTITIAL
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED
+import com.chartboost.mediation.referenceadapter.sdk.ReferenceFullscreenAd.ReferenceFullscreenAdFormat.REWARDED_INTERSTITIAL
 import com.chartboost.mediation.referenceadapter.sdk.ReferenceSdk
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -33,42 +59,14 @@ import kotlin.coroutines.resume
  */
 class ReferenceAdapter : PartnerAdapter {
     /**
+     * The Reference adapter configuration.
+     */
+    override var configuration: PartnerAdapterConfiguration = ReferenceAdapterConfiguration
+
+    /**
      * A map of Chartboost Mediation's listeners for the corresponding load identifier.
      */
     private val listeners = mutableMapOf<String, PartnerAdListener>()
-
-    /**
-     * Override this value to return the version of the partner SDK.
-     */
-    override val partnerSdkVersion: String
-        get() = ReferenceSdk.REFERENCE_SDK_VERSION
-
-    /**
-     * Override this value to return the version of the mediation adapter.
-     *
-     * You may version the adapter using any preferred convention, but it is recommended to apply the
-     * following format if the adapter will be published by Chartboost Mediation:
-     *
-     * Chartboost Mediation.Partner.Adapter
-     *
-     * "Chartboost Mediation" represents the Chartboost Mediation SDK’s major version that is compatible with this adapter. This must be 1 digit.
-     * "Partner" represents the partner SDK’s major.minor.patch.x (where x is optional) version that is compatible with this adapter. This can be 3-4 digits.
-     * "Adapter" represents this adapter’s version (starting with 0), which resets to 0 when the partner SDK’s version changes. This must be 1 digit.
-     */
-    override val adapterVersion: String
-        get() = BuildConfig.CHARTBOOST_MEDIATION_REFERENCE_ADAPTER_VERSION
-
-    /**
-     * Override this value to return the name of the partner SDK.
-     */
-    override val partnerId: String
-        get() = "reference"
-
-    /**
-     * Override this value to return the display name of the partner SDK.
-     */
-    override val partnerDisplayName: String
-        get() = "Reference"
 
     /**
      * Override this method to initialize the partner SDK so that it's ready to request and display ads.
@@ -81,12 +79,13 @@ class ReferenceAdapter : PartnerAdapter {
     override suspend fun setUp(
         context: Context,
         partnerConfiguration: PartnerConfiguration,
-    ): Result<Unit> {
+    ): Result<Map<String, Any>> {
         PartnerLogController.log(SETUP_STARTED)
 
         return ReferenceSdk.initialize().fold(
             onSuccess = {
-                Result.success(PartnerLogController.log(SETUP_SUCCEEDED))
+                PartnerLogController.log(SETUP_SUCCEEDED)
+                Result.success(emptyMap())
             },
             onFailure = {
                 PartnerLogController.log(SETUP_FAILED)
@@ -116,18 +115,14 @@ class ReferenceAdapter : PartnerAdapter {
 
         delay(1000L)
 
-        return when (request.format.key) {
-            AdFormat.BANNER.key, "adaptive_banner" -> {
+        return when (request.format) {
+            PartnerAdFormats.BANNER -> {
                 loadBannerAd(context, request)
             }
-            AdFormat.INTERSTITIAL.key, AdFormat.REWARDED.key -> loadFullscreenAd(context, request)
+            PartnerAdFormats.INTERSTITIAL, PartnerAdFormats.REWARDED, PartnerAdFormats.REWARDED_INTERSTITIAL -> loadFullscreenAd(context, request)
             else -> {
-                if (request.format.key == "rewarded_interstitial") {
-                    loadFullscreenAd(context, request)
-                } else {
-                    PartnerLogController.log(LOAD_FAILED)
-                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT))
-                }
+                PartnerLogController.log(LOAD_FAILED)
+                Result.failure(ChartboostMediationAdException(ChartboostMediationError.LoadError.UnsupportedAdFormat))
             }
         }
     }
@@ -152,38 +147,47 @@ class ReferenceAdapter : PartnerAdapter {
         return Result.success(partnerAd)
     }
 
+    override fun setConsents(
+        context: Context,
+        consents: Map<ConsentKey, ConsentValue>,
+        modifiedKeys: Set<ConsentKey>
+    ) {
+        consents.forEach {
+            PartnerLogController.log(
+                CUSTOM,
+                "${PartnerLogController.PRIVACY_TAG} ${it.key}: ${it.value}",
+            )
+        }
+    }
+
     /**
      * Override this method to show the partner ad.
      *
-     * @param context The current Context.
+     * @param activity The current [Activity].
      * @param partnerAd The partner ad to be shown.
      *
      * @return Result.success(PartnerAd) if the ad was successfully shown, Result.failure(Exception) otherwise.
      */
     override suspend fun show(
-        context: Context,
+        activity: Activity,
         partnerAd: PartnerAd,
     ): Result<PartnerAd> {
         PartnerLogController.log(SHOW_STARTED)
 
-        return when (partnerAd.request.format.key) {
-            AdFormat.BANNER.key, "adaptive_banner" -> {
+        return when (partnerAd.request.format) {
+            PartnerAdFormats.BANNER -> {
                 // Banners do not have a "show" mechanism.
                 PartnerLogController.log(SHOW_SUCCEEDED)
                 Result.success(partnerAd)
             }
 
-            AdFormat.INTERSTITIAL.key, AdFormat.REWARDED.key -> {
+            PartnerAdFormats.INTERSTITIAL, PartnerAdFormats.REWARDED, PartnerAdFormats.REWARDED_INTERSTITIAL -> {
                 showFullscreenAd(partnerAd)
             }
 
             else -> {
-                if (partnerAd.request.format.key == "rewarded_interstitial") {
-                    showFullscreenAd(partnerAd)
-                } else {
-                    PartnerLogController.log(SHOW_FAILED)
-                    Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_UNSUPPORTED_AD_FORMAT))
-                }
+                PartnerLogController.log(SHOW_FAILED)
+                Result.failure(ChartboostMediationAdException(ChartboostMediationError.ShowError.UnsupportedAdFormat))
             }
         }
     }
@@ -198,84 +202,31 @@ class ReferenceAdapter : PartnerAdapter {
      */
     override suspend fun fetchBidderInformation(
         context: Context,
-        request: PreBidRequest,
-    ): Map<String, String> {
+        request: PartnerAdPreBidRequest,
+    ): Result<Map<String, String>> {
         PartnerLogController.log(BIDDER_INFO_FETCH_STARTED)
 
         val token = ReferenceSdk.getBidToken()
 
         PartnerLogController.log(if (token.isNotEmpty()) BIDDER_INFO_FETCH_SUCCEEDED else BIDDER_INFO_FETCH_FAILED)
-        return mapOf("bid_token" to token)
+        return Result.success(mapOf("bid_token" to token))
     }
 
     /**
-     * Override this method to notify your partner SDK of GDPR applicability as determined by
-     * the Chartboost Mediation SDK.
+     * Override this method to notify your partner SDK if the user is underage.
      *
      * @param context The current [Context].
-     * @param applies True if GDPR applies, false otherwise.
-     * @param gdprConsentStatus The user's GDPR consent status.
+     * @param isUserUnderage True if the user is underage, false otherwise.
      */
-    override fun setGdpr(
+    override fun setIsUserUnderage(
         context: Context,
-        applies: Boolean?,
-        gdprConsentStatus: GdprConsentStatus,
+        isUserUnderage: Boolean,
     ) {
         PartnerLogController.log(
-            when (applies) {
-                true -> GDPR_APPLICABLE
-                false -> GDPR_NOT_APPLICABLE
-                else -> GDPR_UNKNOWN
-            },
-        )
-
-        PartnerLogController.log(
-            when (gdprConsentStatus) {
-                GdprConsentStatus.GDPR_CONSENT_UNKNOWN -> GDPR_CONSENT_UNKNOWN
-                GdprConsentStatus.GDPR_CONSENT_GRANTED -> GDPR_CONSENT_GRANTED
-                GdprConsentStatus.GDPR_CONSENT_DENIED -> GDPR_CONSENT_DENIED
-            },
-        )
-    }
-
-    /**
-     * Override this method to notify your partner SDK of the CCPA privacy String as supplied by
-     * the Chartboost Mediation SDK.
-     *
-     * @param context The current [Context].
-     * @param hasGrantedCcpaConsent True if the user has granted CCPA consent, false otherwise.
-     * @param privacyString The CCPA privacy String.
-     */
-    override fun setCcpaConsent(
-        context: Context,
-        hasGrantedCcpaConsent: Boolean,
-        privacyString: String,
-    ) {
-        PartnerLogController.log(
-            if (hasGrantedCcpaConsent) {
-                CCPA_CONSENT_GRANTED
+            if (isUserUnderage) {
+                USER_IS_UNDERAGE
             } else {
-                CCPA_CONSENT_DENIED
-            },
-        )
-    }
-
-    /**
-     * Override this method to notify your partner SDK of the COPPA subjectivity as determined by
-     * the Chartboost Mediation SDK.
-     *
-     * @param context The current [Context].
-     * @param isSubjectToCoppa True if the user is subject to COPPA, false otherwise.
-     */
-    override fun setUserSubjectToCoppa(
-        context: Context,
-        isSubjectToCoppa: Boolean,
-    ) {
-        PartnerLogController.log(
-            if (isSubjectToCoppa) {
-                COPPA_SUBJECT
-            } else {
-                COPPA_NOT_SUBJECT
+                USER_IS_NOT_UNDERAGE
             },
         )
     }
@@ -297,7 +248,7 @@ class ReferenceAdapter : PartnerAdapter {
             ReferenceBanner(
                 context,
                 request.partnerPlacement,
-                chartboostMediationToReferenceBannerSize(request.size),
+                chartboostMediationToReferenceBannerSize(request.bannerSize?.asSize()),
             )
 
         return ad.load(
@@ -371,18 +322,15 @@ class ReferenceAdapter : PartnerAdapter {
                 context = context,
                 adUnitId = request.partnerPlacement,
                 adFormat =
-                    when (request.format.key) {
-                        AdFormat.INTERSTITIAL.key -> INTERSTITIAL
-                        AdFormat.REWARDED.key -> REWARDED
+                    when (request.format) {
+                        PartnerAdFormats.INTERSTITIAL -> INTERSTITIAL
+                        PartnerAdFormats.REWARDED -> REWARDED
+                        PartnerAdFormats.REWARDED_INTERSTITIAL -> REWARDED_INTERSTITIAL
                         else -> {
-                            if (request.format.key == "rewarded_interstitial") {
-                                REWARDED_INTERSTITIAL
-                            } else {
-                                PartnerLogController.log(LOAD_FAILED)
-                                return Result.failure(
-                                    ChartboostMediationAdException(ChartboostMediationError.CM_LOAD_FAILURE_UNSUPPORTED_AD_FORMAT),
-                                )
-                            }
+                            PartnerLogController.log(LOAD_FAILED)
+                            return Result.failure(
+                                ChartboostMediationAdException(ChartboostMediationError.LoadError.UnsupportedAdFormat),
+                            )
                         }
                     },
             )
@@ -437,7 +385,7 @@ class ReferenceAdapter : PartnerAdapter {
                             resumeOnce(
                                 Result.failure(
                                     ChartboostMediationAdException(
-                                        ChartboostMediationError.CM_SHOW_FAILURE_UNKNOWN,
+                                        ChartboostMediationError.ShowError.Unknown,
                                     ),
                                 ),
                             )
@@ -490,11 +438,11 @@ class ReferenceAdapter : PartnerAdapter {
                 }
             } else {
                 PartnerLogController.log(SHOW_FAILED, "Ad is not a ReferenceFullscreenAd.")
-                return Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_WRONG_RESOURCE_TYPE))
+                return Result.failure(ChartboostMediationAdException(ChartboostMediationError.ShowError.WrongResourceType))
             }
         } ?: run {
             PartnerLogController.log(SHOW_FAILED, "Ad is null.")
-            return Result.failure(ChartboostMediationAdException(ChartboostMediationError.CM_SHOW_FAILURE_AD_NOT_FOUND))
+            return Result.failure(ChartboostMediationAdException(ChartboostMediationError.ShowError.AdNotFound))
         }
     }
 
@@ -523,7 +471,7 @@ class ReferenceAdapter : PartnerAdapter {
         ad: Any,
         request: PartnerAdLoadRequest,
     ): PartnerAd {
-        val adSize = ReferenceSdk.getOversizedAdSize(request.size ?: Size(1, 1))
+        val adSize = ReferenceSdk.getOversizedAdSize(request.bannerSize?.asSize() ?: Size(1, 1))
         return PartnerAd(
             ad,
             mapOf(
