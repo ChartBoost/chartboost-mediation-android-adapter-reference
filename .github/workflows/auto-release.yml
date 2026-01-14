@@ -1,0 +1,34 @@
+name: Auto Release
+
+# Triggers automatic tagging when PRs are merged into main,
+# or allows manual release triggering.
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (leave empty to extract from build.gradle.kts)'
+        required: false
+        type: string
+
+jobs:
+  auto-release:
+    # Only run if:
+    # 1. Manual trigger (workflow_dispatch), OR
+    # 2. PR was merged (not just closed) AND branch name looks like a version number
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+       contains(github.event.pull_request.head.ref, '.') &&
+       !contains(github.event.pull_request.head.ref, '/'))
+    uses: ChartBoost/chartboost-mediation-android-actions/.github/workflows/auto-release.yml@rg/auto-release-workflow
+    with:
+      version: ${{ github.event.inputs.version || '' }}
+      build_gradle_path: 'ReferenceAdapter/build.gradle.kts'
+      branch_name: ${{ github.event.pull_request.head.ref || '' }}
+    secrets:
+      GITHUBSERVICETOKEN: ${{ secrets.GITHUBSERVICETOKEN }}
+      CALLER_SLACK_RELEASE_WEBHOOK_URL: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
