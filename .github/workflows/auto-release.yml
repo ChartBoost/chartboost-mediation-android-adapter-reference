@@ -26,17 +26,6 @@ jobs:
        !contains(github.event.pull_request.head.ref, '/'))
     runs-on: ubuntu-latest
     steps:
-      - name: Set payload values
-        id: payload
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-            echo "branch_name=" >> $GITHUB_OUTPUT
-          else
-            echo "version=" >> $GITHUB_OUTPUT
-            echo "branch_name=${{ github.event.pull_request.head.ref }}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Trigger auto-release
         uses: peter-evans/repository-dispatch@v3
         with:
@@ -47,7 +36,6 @@ jobs:
             {
               "repository": "${{ github.repository }}",
               "token": "${{ secrets.GITHUBSERVICETOKEN }}",
-              "version": "${{ steps.payload.outputs.version }}",
-              "branch_name": "${{ steps.payload.outputs.branch_name }}",
+              "version": "${{ github.event.inputs.version || '' }}",
               "build_gradle_path": "ReferenceAdapter/build.gradle.kts"
             }
