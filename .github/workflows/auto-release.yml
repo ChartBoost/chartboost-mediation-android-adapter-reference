@@ -22,11 +22,8 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.merged == true &&
-       github.event.pull_request.head.ref != '' &&
-       (
-         contains(github.event.pull_request.head.ref, '.') &&
-         !contains(github.event.pull_request.head.ref, '/')
-       ))
+       contains(github.event.pull_request.head.ref, '.') &&
+       !contains(github.event.pull_request.head.ref, '/'))
     uses: ChartBoost/chartboost-mediation-android-actions/.github/workflows/auto-release.yml@rg/auto-release-workflow
     with:
       version: ${{ github.event.inputs.version || '' }}
