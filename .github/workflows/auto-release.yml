@@ -24,11 +24,31 @@ jobs:
       (github.event.pull_request.merged == true &&
        contains(github.event.pull_request.head.ref, '.') &&
        !contains(github.event.pull_request.head.ref, '/'))
-    uses: ChartBoost/chartboost-mediation-android-actions/.github/workflows/auto-release.yml@rg/auto-release-workflow
-    with:
-      version: ${{ github.event.inputs.version || '' }}
-      build_gradle_path: 'ReferenceAdapter/build.gradle.kts'
-      branch_name: ${{ github.event.pull_request.head.ref || '' }}
-    secrets:
-      GITHUBSERVICETOKEN: ${{ secrets.GITHUBSERVICETOKEN }}
-      CALLER_SLACK_RELEASE_WEBHOOK_URL: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set payload values
+        id: payload
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "branch_name=" >> $GITHUB_OUTPUT
+          else
+            echo "version=" >> $GITHUB_OUTPUT
+            echo "branch_name=${{ github.event.pull_request.head.ref }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger auto-release
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUBSERVICETOKEN }}
+          repository: ChartBoost/chartboost-mediation-android-actions
+          event-type: auto-release
+          client-payload: |
+            {
+              "repository": "${{ github.repository }}",
+              "token": "${{ secrets.GITHUBSERVICETOKEN }}",
+              "version": "${{ steps.payload.outputs.version }}",
+              "branch_name": "${{ steps.payload.outputs.branch_name }}",
+              "build_gradle_path": "ReferenceAdapter/build.gradle.kts",
+              "slack_webhook_url": "${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}"
+            }
