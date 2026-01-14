@@ -27,7 +27,7 @@ jobs:
          contains(github.event.pull_request.head.ref, '.') &&
          !contains(github.event.pull_request.head.ref, '/')
        ))
-    uses: ChartBoost/chartboost-mediation-android-actions/.github/workflows/auto-release.yml@main
+    uses: ChartBoost/chartboost-mediation-android-actions/.github/workflows/auto-release.yml@rg/auto-release-workflow
     with:
       version: ${{ github.event.inputs.version || '' }}
       build_gradle_path: 'ReferenceAdapter/build.gradle.kts'
