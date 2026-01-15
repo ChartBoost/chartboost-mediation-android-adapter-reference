@@ -35,7 +35,6 @@ jobs:
           client-payload: |
             {
               "repository": "${{ github.repository }}",
-              "token": "${{ secrets.ACCESS_TOKEN }}",
               "version": "${{ github.event.inputs.version || '' }}",
               "build_gradle_path": "ReferenceAdapter/build.gradle.kts"
             }
