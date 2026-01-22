@@ -14,6 +14,9 @@ on:
         required: false
         type: string
 
+env:
+  BUILD_GRADLE_PATH: "ReferenceAdapter/build.gradle.kts"
+
 jobs:
   auto-release:
     # Only run if:
@@ -27,8 +30,6 @@ jobs:
     concurrency:
       group: auto-release-${{ github.repository }}
       cancel-in-progress: false
-    env:
-      BUILD_GRADLE_PATH: "ReferenceAdapter/build.gradle.kts"
     steps:
       - name: Trigger auto-release
         uses: peter-evans/repository-dispatch@v3
