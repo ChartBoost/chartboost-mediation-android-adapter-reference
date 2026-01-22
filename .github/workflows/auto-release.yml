@@ -18,14 +18,24 @@ jobs:
   auto-release:
     # Only run if:
     # 1. Manual trigger (workflow_dispatch), OR
-    # 2. PR was merged (not just closed) AND branch name looks like a version number
+    # 2. PR was merged (not just closed) AND branch name matches version pattern (5 or 6 parts)
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.merged == true &&
-       contains(github.event.pull_request.head.ref, '.') &&
-       !contains(github.event.pull_request.head.ref, '/'))
+       github.event.pull_request.head.ref matches '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$')
     runs-on: ubuntu-latest
+    concurrency:
+      group: auto-release-${{ github.repository }}
+      cancel-in-progress: false
+    env:
+      BUILD_GRADLE_PATH: "ReferenceAdapter/build.gradle.kts"
     steps:
+      - name: Log release trigger
+        run: |
+          echo "## Release Triggered" >> $GITHUB_STEP_SUMMARY
+          echo "- Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ github.event.inputs.version || 'from build.gradle.kts' }}" >> $GITHUB_STEP_SUMMARY
+
       - name: Trigger auto-release
         uses: peter-evans/repository-dispatch@v3
         with:
@@ -37,5 +47,5 @@ jobs:
               "repository": "${{ github.repository }}",
               "token": "${{ secrets.ACCESS_TOKEN }}",
               "version": "${{ github.event.inputs.version || '' }}",
-              "build_gradle_path": "ReferenceAdapter/build.gradle.kts"
+              "build_gradle_path": "${{ env.BUILD_GRADLE_PATH }}"
             }
