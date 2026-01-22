@@ -30,12 +30,6 @@ jobs:
     env:
       BUILD_GRADLE_PATH: "ReferenceAdapter/build.gradle.kts"
     steps:
-      - name: Log release trigger
-        run: |
-          echo "## Release Triggered" >> $GITHUB_STEP_SUMMARY
-          echo "- Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Version: ${{ github.event.inputs.version || 'from build.gradle.kts' }}" >> $GITHUB_STEP_SUMMARY
-
       - name: Trigger auto-release
         uses: peter-evans/repository-dispatch@v3
         with:
@@ -49,3 +43,9 @@ jobs:
               "version": "${{ github.event.inputs.version || '' }}",
               "build_gradle_path": "${{ env.BUILD_GRADLE_PATH }}"
             }
+
+      - name: Log release trigger
+        run: |
+          echo "## Release Triggered" >> $GITHUB_STEP_SUMMARY
+          echo "- Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Version: ${{ github.event.inputs.version || 'from build.gradle.kts' }}" >> $GITHUB_STEP_SUMMARY
