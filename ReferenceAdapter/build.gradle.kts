@@ -41,7 +41,7 @@ android {
         minSdk = 23
         targetSdk = 34
         // If you touch the following line, don't forget to update scripts/get_rc_version.zsh
-        android.defaultConfig.versionName = System.getenv("VERSION_OVERRIDE") ?: "5.1.0.1.12"
+        android.defaultConfig.versionName = System.getenv("VERSION_OVERRIDE") ?: "5.1.1.0.0"
         buildConfigField("String", "CHARTBOOST_MEDIATION_REFERENCE_ADAPTER_VERSION", "\"${android.defaultConfig.versionName}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

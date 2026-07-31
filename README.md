@@ -13,7 +13,7 @@ The Chartboost Mediation Reference adapter mediates the Reference SDK via the Ch
 
 In your `build.gradle`, add the following entry:
 ```
-    implementation "com.chartboost:chartboost-mediation-adapter-reference:5.1.0.1.12"
+    implementation "com.chartboost:chartboost-mediation-adapter-reference:5.1.1.0.0"
 ```
 
 ## Chartboost Mediation Custom Adapter Implementation Guidelines
