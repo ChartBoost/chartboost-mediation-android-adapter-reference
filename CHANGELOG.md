@@ -11,6 +11,10 @@ All official releases can be found on this repository's [releases page](https://
 
 ## Mediation 5
 
+### 5.1.0.1.12
+- Requires a minimum Android API level of 23.
+- Requires Kotlin 2.1.
+
 ### 5.1.0.1.0
 - This version of the adapter supports Chartboost Mediation SDK version 5.+.
 
